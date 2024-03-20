@@ -394,11 +394,9 @@ public class NDEffect {
                 Tmp.v1.trns(rot, (radius + rand1.random(-randLenght, randLenght)) * e.finpow());
                 for (int j : Mathf.signs) {
                     Drawf.tri(e.x + Tmp.v1.x, e.y + Tmp.v1.y, spikeWithin * foutLimit, spikeLenght * foutLimit, rot + 90 * j);
-                    if (ApplyDamage && e.data instanceof Bullet b){
-                        b.damage = damage/60f;
-                        b.type.collidesGround = true;
-                        Damage.collideLine(b,b.team,Fx.hitLaser,e.x + Tmp.v1.x,e.y + Tmp.v1.y,rot + 90 * j,spikeLenght*foutLimit);
-                    }
+                }
+                if (ApplyDamage){
+                    Damage.damage(e.x + Tmp.v1.x , e.y + Tmp.v1.y,spikeLenght * foutLimit,damage);
                 }
             }
         });

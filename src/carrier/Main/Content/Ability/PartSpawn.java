@@ -22,7 +22,8 @@ public class PartSpawn extends Skill{
     public boolean runEffect,transformType,isTransform;
     public Unit unitpart;
     public UnitType ut;
-    public float x,y,progress;
+    public float x;
+    public float y;
     public Color color;
     
     public PartSpawn(UnitType ut,float x,float y, boolean display){
@@ -37,13 +38,11 @@ public class PartSpawn extends Skill{
         //Kiểm tra có phải là unit có thể biến đổi và nó là 1 phần part ?
         if(u instanceof TransformEntity t && ut instanceof PartType){
             transformType = true;
-            if(t.TransformNow)isTransform = true;
-            else isTransform = false;
+            isTransform = t.TransformNow;
         }
         else if (u instanceof TransformFlying f && ut instanceof PartType){
             transformType = true;
-            if(f.TransformNow)isTransform = true;
-            else isTransform = false;
+            isTransform = f.TransformNow;
         }
         else{
             transformType = false;
