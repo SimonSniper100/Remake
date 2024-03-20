@@ -140,7 +140,6 @@ public class CarrierUnit {
         }};
         MainTurret = new Weapon("carrier-mod-d-railgun"){{
             shoot.shotDelay = 1.5f*60;
-            inaccuracy = 0f;
             shoot = new ShootBarrel(){{
                 barrels = new float[]{5.02f,20,0,-5.02f,20,0}; 
             }};
