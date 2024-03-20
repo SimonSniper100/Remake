@@ -1,0 +1,97 @@
+package carrier.Main.Content.Type_and_Entity.Transformer;
+
+import arc.Core;
+import arc.graphics.Color;
+import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.Lines;
+import arc.util.Time;
+import arc.util.io.Reads;
+import arc.util.io.Writes;
+import carrier.Main.Content.Special.EntityRegister;
+import mindustry.entities.Effect;
+import mindustry.entities.effect.MultiEffect;
+import mindustry.gen.UnitWaterMove;
+import mindustry.io.TypeIO;
+
+public class TransformEntity extends UnitWaterMove{
+    public float second,countDownSecond;
+    public boolean TransformNow = false,runCountEffect;
+    public float TimeTransform,CountDownTime,radius = 300f;
+    public float velocity = vel().len();
+    public Color color = Color.white;
+    public String nameSprite;
+    private Effect TransformEffect = new MultiEffect(new Effect(4*60,e->{
+        Draw.mixcol(color,color, e.fout());
+        Draw.alpha(e.fout());
+        Lines.stroke(1f);
+        Draw.rect(Core.atlas.find("carrier-mod-"+nameSprite+"-white"),x,y,rotation-90);
+    }),
+    new Effect(5*60,e->{
+        for(int i =0;i<2;i++){
+            Draw.color(color);
+            Draw.alpha(e.foutpow());
+            Lines.stroke(e.foutpow()*10*i/2);
+            Lines.circle(x, y, radius*e.finpow()*i);
+        }
+    })
+    );;
+    @Override
+    public int classId(){
+        return EntityRegister.getID(TransformEntity.class);
+    }
+    @Override
+    public void update(){
+        super.update();
+        
+        //Check heatlh unit, does not dead instanlly it will not call effect
+        if(healthf()<0.6f&&!dead() && second <=0f && countDownSecond <=0f){
+            //Transform Time Heeee
+            TransformNow = true;
+            second = TimeTransform;
+            countDownSecond = CountDownTime;
+            TransformEffect.at(x,y,rotation-90);
+            runCountEffect = true;
+        }
+        //Some buff unit
+        if(second >0f && countDownSecond >0f){
+            second -= Time.delta;
+        }
+        //If run out
+        if(second <= 0f && countDownSecond >0f){
+            countDownSecond -=Time.delta;
+            TransformNow = false;
+            //run 1 time effect prevent spam effect to much cause lag   
+            if(runCountEffect){
+                TransformEffect.at(x,y,rotation-90);
+                runCountEffect = false;
+            }
+        }
+        
+    }
+    @Override
+    public void read(Reads r){
+       super.read(r);
+        second = r.f();
+        countDownSecond = r.f();
+        TimeTransform = r.f();
+        CountDownTime = r.f();
+        TransformNow = r.bool();
+        color = TypeIO.readColor(r);
+        nameSprite = r.str();
+        radius = r.f();
+        runCountEffect = r.bool();
+    }
+    @Override
+    public void write(Writes w){
+        super.write(w);
+        w.f(second);
+        w.f(countDownSecond);
+        w.f(TimeTransform);
+        w.f(CountDownTime);
+        w.bool(TransformNow);
+        TypeIO.writeColor(w, color);
+        w.str(nameSprite);
+        w.f(radius);
+        w.bool(runCountEffect);
+    }
+}
