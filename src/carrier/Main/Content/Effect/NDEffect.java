@@ -395,8 +395,8 @@ public class NDEffect {
                 for (int j : Mathf.signs) {
                     Drawf.tri(e.x + Tmp.v1.x, e.y + Tmp.v1.y, spikeWithin * foutLimit, spikeLenght * foutLimit, rot + 90 * j);
                 }
-                if (ApplyDamage){
-                    Damage.damage(e.x + Tmp.v1.x , e.y + Tmp.v1.y,spikeLenght * foutLimit,damage);
+                if (ApplyDamage && e.data instanceof Bullet b){
+                    Damage.damage(b.team(),e.x + Tmp.v1.x , e.y + Tmp.v1.y,spikeLenght * foutLimit,damage);
                 }
             }
         });
