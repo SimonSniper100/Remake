@@ -6,15 +6,17 @@ import mindustry.gen.Unit;
 import mindustry.world.meta.Env;
 
 public class PartType extends CopyUnitType {
+    public boolean ImmuneSuction;
     public PartType(String name) {
         super(name);
         accel = 0.05f;
         envDisabled = Env.none;
         drag = 0.03f;
-        hittable=physics=useUnitCap=logicControllable=playerControllable=targetable=drawMinimap=drawCell=drawItems=createScorch=createWreck=killable=false;
-        autoFindTarget=hidden=lowAltitude=true;
+        hittable=physics=useUnitCap=canBoost =canDrown=logicControllable=playerControllable=targetable=drawMinimap=drawCell=drawItems=createScorch=createWreck=killable=false;
+        autoFindTarget=hidden=lowAltitude=ImmuneSuction=true;
         constructor = ()-> new PartEntity();
         controller = u-> new PartUnitAI();
+        engineSize = 0f;
         hitSize =0.1f;
     }
     @Override

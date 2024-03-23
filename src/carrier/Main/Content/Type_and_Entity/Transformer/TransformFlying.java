@@ -14,9 +14,10 @@ import arc.util.io.Writes;
 import carrier.Main.Content.Special.EntityRegister;
 import mindustry.entities.Effect;
 import mindustry.entities.effect.MultiEffect;
+import mindustry.gen.Unit;
 import mindustry.gen.UnitEntity;
 import mindustry.io.TypeIO;
-//Copy from Transfrom Entity but replace flyingUnit
+//Copy from Transform Entity but replace flyingUnit
 public class TransformFlying extends UnitEntity{
     public float second,countDownSecond;
     public boolean TransformNow = false,runCountEffect;
@@ -25,17 +26,20 @@ public class TransformFlying extends UnitEntity{
     public Color color = Color.white;
     public String nameSprite;
     private Effect TransformEffect = new MultiEffect(new Effect(4*60,e->{
+        if(e.data instanceof Unit u){
+            e.rotation = u.rotation;
+        }
         Draw.mixcol(color,color, e.fout());
         Draw.alpha(e.fout());
         Lines.stroke(1f);
-        Draw.rect(Core.atlas.find("carrier-mod-"+nameSprite+"-white"),x,y,rotation-90);
+        Draw.rect(Core.atlas.find("carrier-mod-"+nameSprite+"-white"),e.x,e.y,e.rotation-90);
     }),
     new Effect(5*60,e->{
         for(int i =0;i<2;i++){
             Draw.color(color);
             Draw.alpha(e.foutpow());
             Lines.stroke(e.foutpow()*10*i/2);
-            Lines.circle(x, y, radius*e.finpow()*i);
+            Lines.circle(e.x, e.y, radius*e.finpow()*i);
         }
     })
     );;
@@ -47,12 +51,15 @@ public class TransformFlying extends UnitEntity{
     public void update(){
         super.update();
         //Check heatlh unit, does not dead instanlly it will not call effect
-        if((healthf()<0.6f||Core.input.keyTap(KeyCode.n))&&!dead() && second <=0f && countDownSecond <=0f){
+        //Check heatlh unit, does not dead instanlly it will not call effect
+        if((healthf()<0.6f||(Core.input.keyTap(KeyCode.n) && isPlayer()))&&!dead() && second <=0f && countDownSecond <=0f){
             //Transform Time Heeee
             TransformNow = true;
             second = TimeTransform;
             countDownSecond = CountDownTime;
-            TransformEffect.at(x,y,rotation-90);
+            TransformEffect.rotWithParent(true);
+            TransformEffect.followParent(true);
+            TransformEffect.at(this,true);
             runCountEffect = true;
         }
         //Some buff unit
@@ -63,13 +70,14 @@ public class TransformFlying extends UnitEntity{
         if(second <= 0f && countDownSecond >0f){
             countDownSecond -=Time.delta;
             TransformNow = false;
-            //run 1 time effect prevent spam effect too much cause lag   
+            //run 1 time effect prevent spam effect to much cause lag
             if(runCountEffect){
-                TransformEffect.at(x,y,rotation-90);
+                TransformEffect.rotWithParent(true);
+                TransformEffect.followParent(true);
+                TransformEffect.at(this,true);
                 runCountEffect = false;
             }
         }
-        
     }
     @Override
     public void read(Reads r){

@@ -26,8 +26,6 @@ public class RadarDestruction extends Skill {
     public Color color = Color.white;
     public Effect RadarEffect,BlastEffect;
     public Unit unit;
-    public NDEffect ye = new NDEffect();
-    Teamc target;
     private float timer;
     protected float results,lstResults;
     @Override
@@ -36,7 +34,8 @@ public class RadarDestruction extends Skill {
         timer+=Time.delta;
         if(u instanceof TransformEntity e){
             if(timer>=skillCooldown && e.TransformNow){
-                RadarEffect.at(u);
+                RadarEffect.rotWithParent(true).followParent(true);
+                RadarEffect.at(u,true);
                 timer=0f;
             } 
             else if(!e.TransformNow){
@@ -64,41 +63,42 @@ public class RadarDestruction extends Skill {
     public void draw(Unit u){
         RadarEffect = new Effect(2f*60f,e->{
             if(u.dead)return;
-            float fslopeCut = 5f*(e.fslope()<0.2f?e.fslope()*0.2f:0.2f);
-            float finCut = 2f*(e.finpow()<0.5f?e.finpow():0.5f);
+            float fslopeCut = 5f*(Math.min(e.fslope(), 0.2f));
+            float finCut = 2f*(Math.min(e.finpow(), 0.5f));
             float b = 360f * e.fin(Interp.pow4);
             Draw.color(color);
             Draw.z(Layer.effect-1);
             Draw.alpha(fslopeCut);
             Lines.stroke(10f*finCut);
-            Lines.circle(u.x, u.y, radarRadius*finCut+1);
-            Fill.circle(u.x, u.y, 7);
-            Lines.line(u.x,u.y,MathComplex.dx(u.x,radarRadius*finCut+1,b),MathComplex.dy(u.y,radarRadius*finCut+1.001f,b));
+            Lines.circle(e.x, e.y, radarRadius*finCut+1);
+            Fill.circle(e.x, e.y, 7);
+            Lines.line(e.x,e.y,MathComplex.dx(e.x,radarRadius*finCut+1,b),MathComplex.dy(e.y,radarRadius*finCut+1.001f,b));
             Draw.reset();
             Draw.color(Color.valueOf("fffff0"));
             Draw.alpha(fslopeCut);
             Draw.z(Layer.effect);
             Lines.stroke(4f*finCut);
-            Lines.circle(u.x, u.y, radarRadius*finCut);
-            Lines.line(u.x,u.y,MathComplex.dx(u.x,radarRadius*finCut+1,b),MathComplex.dy(u.y,radarRadius*finCut+1.001f,b));
+            Lines.circle(e.x, e.y, radarRadius*finCut);
+            Lines.line(e.x,e.y,MathComplex.dx(e.x,radarRadius*finCut+1,b),MathComplex.dy(e.y,radarRadius*finCut+1.001f,b));
             life = e.fin();
             float diff=Diffenals(b)*1.5f;
             for(int i =0;i<3;i++){
                 Draw.color(color);
                 Draw.z(Layer.bullet-1f);
                 Draw.alpha(1-0.15f*i);
-                Fill.tri(u.x,u.y,MathComplex.dx(u.x, radarRadius*finCut+1, b-diff*i*1.2f),MathComplex.dy(u.y, radarRadius*finCut+1, b-diff*i*1.2f),MathComplex.dx(u.x, radarRadius*finCut, b-diff*(i+1)*1.2f),MathComplex.dy(u.y, radarRadius*finCut+1, b-diff*(i+1)*1.2f));
+                Fill.tri(e.x,e.y,MathComplex.dx(e.x, radarRadius*finCut+1, b-diff*i*1.2f),MathComplex.dy(e.y, radarRadius*finCut+1, b-diff*i*1.2f),MathComplex.dx(e.x, radarRadius*finCut, b-diff*(i+1)*1.2f),MathComplex.dy(e.y, radarRadius*finCut+1, b-diff*(i+1)*1.2f));
             }
             if(e.fin()>=0.99f &&!run){
                 run = true;
             }
             
         });
-        target = Units.closestEnemy(u.team,u.x,u.y,radarRadius,s->!s.dead);
-        if(Found(target)){
-            Lines.stroke(3f,color);
-            Lines.circle(target.x(), target.y(), 4);
-        }
+        Units.nearbyEnemies(u.team,u.x,u.y,radarRadius ,e->{
+            if(Found(e)){
+                Lines.stroke(3f,color);
+                Lines.circle(e.x(), e.y(), 4);
+            }
+        });
 
     }
     public boolean Found(Teamc t){

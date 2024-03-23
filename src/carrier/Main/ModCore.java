@@ -16,13 +16,11 @@ public class ModCore implements ApplicationListener {
     @Override
 	public void update(){
         if(Vars.state.isMenu() || Vars.state.isPaused()){
-            if((timer +=Time.delta)> 30f){
+            if((timer +=Time.delta)> 45f){
                 pf.build(Core.scene.root);
                 Vars.ui.loadfrag = pf;
                 timer = 0f;
             }
-            
         }
-        
     }
 }

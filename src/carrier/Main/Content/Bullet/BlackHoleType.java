@@ -8,6 +8,7 @@ import arc.math.Interp;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.struct.IntSet;
+import carrier.Main.Content.Type_and_Entity.Part.PartType;
 import carrier.Main.MathComplex;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformType;
 import mindustry.core.World;
@@ -53,8 +54,9 @@ public class BlackHoleType extends DataBulletType{
             float real = suctionRadius + BlackHoleRadius * (fin ? b.fin() : b.fout()) + BlackHoleRadiusRemain;
             completeDamage(b.team, b.x, b.y, real - suctionRadius, b.damage + BlackHoleDamage * b.fin() + BlackHoleRadiusAffect * (float) Math.pow(b.fin() * 2, 2), buildingDamageMultiplier, true, true);
             Units.nearbyEnemies(b.team, b.x - real, b.y - real, real * 2f, real * 2f, unit -> {
-                boolean shouldApplyForce = !(unit.type instanceof TransformType) ||
-                        (unit.type instanceof TransformType t && !t.ImmuneSuction);
+                boolean shouldApplyForce = !(unit.type instanceof TransformType || unit.type instanceof PartType)||
+                        (unit.type instanceof TransformType t && !t.ImmuneSuction)||
+                        (unit.type instanceof PartType pt && !pt.ImmuneSuction);
                 if (unit.within(b.x, b.y, real) && unit.team != b.team && shouldApplyForce) {
                     v1.set(b).sub(unit);
                     //Cấm về số 0 vì nó sẽ đi backward

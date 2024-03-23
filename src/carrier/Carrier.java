@@ -18,7 +18,7 @@ import mindustry.game.EventType.ClientLoadEvent;
 import mindustry.mod.Mod;
 
 public class Carrier extends Mod{
-    
+    ModCore wut = new ModCore();
     public static String name(String add){
         return "carrier-mod" + "-" + add;
     }
@@ -29,7 +29,7 @@ public class Carrier extends Mod{
     }
     @Override
     public void init(){ 
-       Core.app.addListener(new ModCore());
+       Core.app.addListener(wut);
     }
     @Override
     public void loadContent(){

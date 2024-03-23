@@ -13,6 +13,7 @@ public class StatusMod {
             damageMultiplier = 1.5f;
             healthMultiplier = 3f;
             reloadMultiplier = 1.3f;
+            dragMultiplier = 0.4f;
         }};
         DisbenzireBuff = new StatusEffect("DisbenzireBuff"){{
             show = false;
@@ -21,6 +22,7 @@ public class StatusMod {
             damageMultiplier = 3f;
             healthMultiplier = 3f;
             reloadMultiplier = 2f;
+            dragMultiplier = 0.7f;
         }};
         DissesanaBuff = new StatusEffect("DissesanaBuff"){{
             show = false;
@@ -29,6 +31,7 @@ public class StatusMod {
             reloadMultiplier = 2.1f;
             damageMultiplier = 2.3f;
             healthMultiplier = 5f;
+            dragMultiplier = 0.45f;
         }};
         Special = new StatusEffect("clear"){{
             show = false;

@@ -9,6 +9,7 @@ import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.scene.ui.layout.Table;
 import arc.util.Time;
+import arc.util.Tmp;
 import carrier.Main.MathComplex;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformEntity;
 import mindustry.Vars;
@@ -32,7 +33,7 @@ public class OrbritWeapon extends Skill{
     BulletType etou = new BulletType();
     private Vec2 v = new Vec2();
     private Effect ParticalEffect;
-    private Effect Colorscreen= new Effect(lifeTimeEffect,e->{
+    private Effect Colorscreen= new Effect(lifeTimeEffect,200000000f,e->{
         Draw.z(Layer.space-1);
         Draw.color(color.cpy());
         Draw.alpha(e.fout());
@@ -141,6 +142,7 @@ public class OrbritWeapon extends Skill{
     }
     @Override
     public void draw(Unit u){
+        Core.camera.bounds(Tmp.r1).overlaps(Tmp.r2.setCentered(px, py, Colorscreen.clip));
         p = timer/skillCooldown;
         dp =delay/timeDelay;
         ap= actTime/duration;

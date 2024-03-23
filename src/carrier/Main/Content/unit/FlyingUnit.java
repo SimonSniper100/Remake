@@ -6,6 +6,7 @@ import arc.Core;
 import arc.graphics.Color;
 import arc.math.Mathf;
 import arc.struct.Seq;
+import carrier.Carrier;
 import carrier.Main.CarrierVars;
 import carrier.Main.Content.AI.PartUnitAI;
 import carrier.Main.Content.Ability.PartSpawn;
@@ -191,11 +192,10 @@ public class FlyingUnit {
                     BlackHoleRadiusRemain = 60f;
                     BlackHoleRadiusAffect = 200f;
                     BlackHoleDamage = 1000f;
-                    force = 0.5f;
+                    force =1.5f;
                     suctionRadius = 700f;
-                    interval =1f;
+                    interval =3f;
                     fin = true;
-                    AnotherBullet = null;
                     shakeStrenghtFrom =3f;
                     shakeStrenghtTo = 23f;
                     lifetime = 8f*60f;
@@ -209,40 +209,6 @@ public class FlyingUnit {
                     lightningLengthRand = 2;
                     despawnSound =hitSound= ModSound.hugeBlasts;
                     fragBullets=1;
-                    BulletSpawn = new TrailFadeBulletType(){{
-                        hitEffect=despawnEffect= new MultiEffect(
-                                NDEffect.CircleSpikeBlastOut(CarrierVars.thurmixRed,splashDamageRadius,70,2),
-                                NDEffect.TriAngleCircleSpreardSpike(50,splashDamageRadius*0.95f,CarrierVars.thurmixRed,8,4,20,5),
-                                NDEffect.SolidCircleCollapse(70, CarrierVars.thurmixRed, width),
-                                NDEffect.FragmentExplode(60, CarrierVars.thurmixRed,splashDamageRadius*4f , 13, 3, 13),
-                                NDEffect.Star4Wings(70, CarrierVars.thurmixRed, splashDamageRadius*2, 10, 0, true)
-                        );
-                        hitColor = CarrierVars.thurmixRed;
-                        speed = 10;
-                        damage = 4250;
-                        velocityBegin = 20f;
-                        splashDamage = 1000;
-                        width = height = 12;
-                        splashDamageRadius = 60;
-                        shootEffect = Fx.shootSmallColor.wrap(Color.white);
-                        hitEffect = Fx.none;
-                        tracerRandX = 7f;
-                        tracerSpacing = 3f;
-                        tracerStroke =2f;
-                        shrinkX=shrinkY = 0;
-                        despawnSound = hitSound = Sounds.largeExplosion;
-                        tracerFadeOffset = 10;
-                        trailChance =0;
-                        trailColor = Color.white;
-                        tracers = 3;
-                        tracerUpdateSpacing = 3f;
-                        lifetime = 40f;
-                        sprite = "circle";
-                        fragBullets = 7;
-                        fragSpread = 360;
-                        fragLifeMin = 1.2f;
-                        fragLifeMax = 2f;
-                    }};
                     ExtenalEffect = new MultiEffect(
                         NDEffect.FragmentVaccum(2f*60,CarrierVars.thurmixRed, 800, 24, 8, 42).followParent(false),
                         NDEffect.TriAngleCircleSpreardSpike(3*60f, 700, CarrierVars.thurmixRed, Mathf.random(1,5),30, 300, 150,true,1000).followParent(false)
@@ -256,7 +222,6 @@ public class FlyingUnit {
                             }else{
                                 createUnits(b, b.x, b.y);
                             }
-
                             if(!fragOnHit){
                                 createFrags(b, b.x, b.y);
                             }
@@ -270,12 +235,12 @@ public class FlyingUnit {
                         lifetime = 0.5f; 
                         killShooter =false;
                         splashDamage = 150000f;
-                        splashDamageRadius = 1000f;
+                        splashDamageRadius = 400f;
                         despawnShake = 200f;
                         soundPitchMax = soundPitchMin = 1f;
                         hitSoundVolume = 40f;
                         for(int i = 0;i<60;i+=10){
-                            add.add(NDEffect.TriAngleCircleSpreardSpike(6*60f, 900, CarrierVars.thurmixRed, 6,30, 300+24*Mathf.random(-1f, 1f), 600,true,4000).followParent(false).startDelay(i));
+                            add.add(NDEffect.TriAngleCircleSpreardSpike(6*60f, 900, CarrierVars.thurmixRed, 6,30, 300+24*Mathf.random(-1f, 1f), 600,true,10000).followParent(false).startDelay(i));
                         }
                         add.addAll(
                             NDEffect.BlackHole(CarrierVars.thurmixRed, 5, 1.2f*60f, 45, 300f, 10).startDelay(0.1f*60f).followParent(false),
@@ -289,10 +254,11 @@ public class FlyingUnit {
                             NDEffect.SpikeCircle2(1.8f*60f, CarrierVars.thurmixRed, 900, 14, 600f, 130f).followParent(false));
                         despawnEffect = new SeqMutliEffect(add);
                         fragBullets = 1;
-                        fragBullet = new ExplosionBulletType(splashDamage*0.5f, splashDamageRadius*1.5f){{
-                            removeAfterPierce = false;
-                            killShooter = false;
-                        }};
+                        fragBullet = new ExplosionBulletType(splashDamage*0.5f, splashDamageRadius*2f){
+                            {
+                                removeAfterPierce = false;
+                                killShooter = false;
+                            }};
                         }
                     };
                 }};
@@ -306,7 +272,7 @@ public class FlyingUnit {
             health = 1000000f;
             armor = 100000f;
             speed = 1;
-            accel =drag =1;
+            accel =drag =0.07f;
             lowAltitude = true;
             controller = u-> new PartUnitAI(true);
             ammoType = new ItemAmmoType(ModItem.Diamond, 1000);
@@ -329,6 +295,7 @@ public class FlyingUnit {
             envDisabled = Env.none;
             omniMovement = false;
             speed = 0.4f;
+            fallSpeed = 0.0001f;
             totalRequirements =firstRequirements=cachedRequirements=new ItemStack[]{
                 new ItemStack(ModItem.Diamond, 3250),
                 new ItemStack(ModItem.QuatanzationCrystal, 1250)
@@ -380,23 +347,22 @@ public class FlyingUnit {
                     CarrierVars.copyMove(NakisakaRailGun, 60f*i, -130f,i!=1)
                 );
                 abilities.addAll(
-                    new PartSpawn(BaseWeapons, 150f*i, -80,i!=1){{
+                    new PartSpawn(BaseWeapons, 150f*i, -80,i!=1, CarrierVars.thurmixRed){{
                         SpawnCount = 2;
                         rotate = 90;
-                        message="While Transforming:\nSpawn 2 Railgun that can create Strong Black Hole";
+                        message="While Transforming:\nWarps in 2 Singularity Turrets that shoot singularity charges at enemies.";
                     }}
                 );
             }
+            Seq<Float> pos = new Seq<>();
+            pos.addAll(-33f, 185f, 37f, 145f, -37f, 117f, 70.5f, 64f, 62f, -29.5f);
+            weapons.addAll(CarrierVars.WeaponChainAdd(NakisakaSmallgun,pos));
             weapons.addAll(
-                CarrierVars.copyMove(NakisakaSmallgun, -33f, 185, true),
-                CarrierVars.copyMove(NakisakaSmallgun, 37f, 145),
-                CarrierVars.copyMove(NakisakaSmallgun, -37f, 117),
                 CarrierVars.MoveModifed(NakisakaSmallgun, 70.5f, 64, m->{
                     m.baseRotation = 180f;
-                }),
-                CarrierVars.copyMove(NakisakaSmallgun, -30, 40),
-                CarrierVars.copyMove(NakisakaSmallgun, 62, -29.5f)
-            );
-        }};
+                    })
+                );
+            }
+        };
     }
 }

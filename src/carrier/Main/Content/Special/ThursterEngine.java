@@ -13,28 +13,25 @@ import mindustry.gen.Unit;
 import mindustry.type.UnitType;
 
 public class ThursterEngine extends UnitType.UnitEngine{
-    public float lenght,z;
+    public float lenght,z,offset=0;
     public boolean TeamColor;
     private float t;
     public Color color = Color.white;
-    public Unit us,sub;
     public ThursterEngine(float x,float y,float radius,float rotation,float lenght,boolean TeamColor){
         super(x, y, radius, rotation);
         this.lenght= lenght;
+        this.TeamColor = TeamColor;
     }
     @Override
     public void draw(Unit u){
-        if(u.controller() instanceof PartUnitAI p){
-            us = p.Transformer;
-        }
         if(u.vel.len2()>=0.000001f){
             if(t >=360)t=0f;
-            sub = us != null && !us.dead &&u.isValid() ? us: u; 
             Draw.blend(Blending.additive);
             float z1 = Draw.z();
             if(z>0)Draw.z();
-            float str = Mathf.clamp(sub.vel.len(), 0, sub.speed())*Mathf.log(10,Mathf.sqr(2*sub.speedMultiplier+1));
-            float b = str <= 0.9f ? 0: Mathf.sin(t+=Time.delta*0.1f*(Vars.state.isPaused() ? 0:1)*Mathf.random(1f, (float)Math.sqrt(Math.abs(sub.speedMultiplier))));
+            float speed = (u.vel.len()*1.05f/(u.speedMultiplier+u.dragMultiplier));
+            float str = Mathf.clamp(speed - offset, 0, u.type.speed)*(float)Math.sqrt(u.speedMultiplier+u.dragMultiplier);
+            float b = str <= 0.9f ? 0: str*Mathf.sin(t+=Time.delta*0.1f*(Vars.state.isPaused() ? 0:1)*Mathf.random(1f, (float)Math.sqrt(Math.abs(u.speedMultiplier))));
             Draw.color(TeamColor ? u.team.color:color);
             float 
                 dx1= u.x +Angles.trnsx(u.rotation, y,x+radius/2f),

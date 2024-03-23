@@ -17,7 +17,6 @@ public class PartUnitAI extends AIController {
     public float x,y;
     public boolean lossen;
     private float px,py;
-    public Vec2 v1 = new Vec2();    
     public PartUnitAI(){
         this.lossen = false;
     }
@@ -63,9 +62,10 @@ public class PartUnitAI extends AIController {
                 unit.reloadMultiplier = Transformer.reloadMultiplier;
                 unit.damageMultiplier = Transformer.damageMultiplier;
                 unit.healthMultiplier = Transformer.healthMultiplier;
+                unit.dragMultiplier = Transformer.dragMultiplier;
                 px = Transformer.x+ Angles.trnsx(Transformer.rotation, y,x);
                 py = Transformer.y+ Angles.trnsy(Transformer.rotation, y,x);
-                if(lossen)moveTo(px,py, 2,10,false,null,true);   
+                if(lossen && !IsTeleport(unit,px,py, Transformer.hitSize*(float)Math.sqrt(Transformer.speedMultiplier/(unit.type.accel+unit.type.drag))))moveTo(px,py, 2,10,false,null,true);
                 else unit.set(px,py);
             }
             else{
@@ -73,9 +73,16 @@ public class PartUnitAI extends AIController {
             }
         }
     }
-    public boolean IsTeleport(Unit u1,Unit u2){
-        v1.set(u1).sub(u2);
-        return true;
+    public boolean IsTeleport(Unit u1,Unit u2,float radius){
+        return IsTeleport(u1.x,u1.y,u2.x,u2.y,radius);
+    }
+    public boolean IsTeleport(Unit u1,float x2,float y2,float radius){
+        return IsTeleport(u1.x,u1.y,x2,y2,radius);
+    }
+    public boolean IsTeleport(float x1,float y1,float x2,float y2,float radius){
+        Vec2 dst = new Vec2();
+        float distance = dst.set(x1,y1).sub(x2,y2).len();
+        return distance >= radius;
     }
     //Copy and Fix posc = > pos point
     public void moveTo(float x,float y, float circleLength, float smooth, boolean keepDistance, @Nullable Vec2 offset, boolean arrive){

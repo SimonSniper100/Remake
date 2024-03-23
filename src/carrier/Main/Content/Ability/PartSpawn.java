@@ -8,6 +8,7 @@ import arc.math.Angles;
 import arc.scene.style.TextureRegionDrawable;
 import arc.scene.ui.layout.Table;
 import carrier.Main.Content.AI.PartUnitAI;
+import carrier.Main.Content.Effect.NDEffect;
 import carrier.Main.Content.Type_and_Entity.Part.PartType;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformEntity;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformFlying;
@@ -25,6 +26,7 @@ public class PartSpawn extends Skill{
     public float x;
     public float y;
     public Color color;
+    public String nameSpirte;
     
     public PartSpawn(UnitType ut,float x,float y, boolean display){
         this.ut=ut;
@@ -32,6 +34,13 @@ public class PartSpawn extends Skill{
         this.y=y;
         this.display = display;
         color = Color.white;
+    }
+    public PartSpawn(UnitType ut,float x,float y, boolean display,Color color){
+        this.ut=ut;
+        this.x=x;
+        this.y=y;
+        this.display = display;
+        this.color = color;
     }
     @Override
     public void update(Unit u){
@@ -59,15 +68,14 @@ public class PartSpawn extends Skill{
                 unitpart.rotation = u.rotation;
                 unitpart.add(); 
                 Events.fire(new UnitCreateEvent(unitpart,null,u));
-                Effect spawnPartEffect = new Effect(60, e->{
-                    Draw.color(color);
-                    Draw.alpha(e.foutpow());
-                    Draw.mixcol(color,e.finpow());
-                    Draw.rect(unitpart.type.fullIcon,e.x,e.y,e.rotation-90);
-                });
+                Effect spawnPartEffect = NDEffect.TransformAppear(color,new Effect(),4*60f,nameSpirte,u).rotWithParent(true).followParent(true);
                 if(runEffect){
-                    spawnPartEffect.at(u,true);
+                    spawnPartEffect.at(unitpart,true);
                     runEffect=false;
+                    for(var w : unitpart.mounts()){
+                        Effect ex = NDEffect.TransformWeaponsAppear(color,new Effect(),4*60f,w,unitpart).rotWithParent(true).followParent(true);
+                        ex.at(unitpart,true);
+                    }
                 }
             }
             //còn có rồi thì kiểm tra ai

@@ -17,6 +17,7 @@ import arc.math.geom.Vec2;
 import arc.math.geom.Vec3;
 import arc.struct.FloatSeq;
 import arc.struct.IntMap;
+import arc.util.Nullable;
 import arc.util.Tmp;
 import carrier.Main.MathComplex;
 import carrier.Main.Content.Special.CacheBatch3D;
@@ -25,10 +26,14 @@ import mindustry.Vars;
 import mindustry.content.Fx;
 import mindustry.entities.Damage;
 import mindustry.entities.Effect;
+import mindustry.entities.effect.MultiEffect;
 import mindustry.entities.effect.ParticleEffect;
+import mindustry.entities.units.WeaponMount;
 import mindustry.gen.Bullet;
 import mindustry.gen.Unit;
 import mindustry.graphics.*;
+import mindustry.type.Weapon;
+
 import java.util.Arrays;
 public class NDEffect {
     public static final float WIDTH = 2.5f;
@@ -396,7 +401,7 @@ public class NDEffect {
                     Drawf.tri(e.x + Tmp.v1.x, e.y + Tmp.v1.y, spikeWithin * foutLimit, spikeLenght * foutLimit, rot + 90 * j);
                 }
                 if (ApplyDamage && e.data instanceof Bullet b){
-                    Damage.damage(b.team(),e.x + Tmp.v1.x , e.y + Tmp.v1.y,spikeLenght * foutLimit,damage*foutLimit/60f);
+                    Damage.damage(b.team(),e.x + Tmp.v1.x , e.y + Tmp.v1.y,(spikeLenght+spikeWithin) * foutLimit/2f,damage*foutLimit/60f);
                 }
             }
         });
@@ -562,4 +567,33 @@ public class NDEffect {
             }
         });
     }
+    public static Effect TransformAppear(Color color, @Nullable Effect eff, float lifeTime, String spriteName,@Nullable Unit un){
+        return new MultiEffect(eff,
+            new Effect(lifeTime,200000f,e->{
+                if(un != null)e.data = un;
+                if(e.data instanceof Unit u){
+                    e.rotation = u.rotation;
+                    Draw.mixcol(color,color, e.fout());
+                    Draw.alpha(e.fout());
+                    Lines.stroke(1f);
+                    Draw.rect(Core.atlas.find("carrier-mod-"+spriteName+"-white"),e.x,e.y,e.rotation-90);
+                }
+        }));
+    };
+    public static Effect TransformWeaponsAppear(Color color, @Nullable Effect eff, float lifeTime,WeaponMount w ,Unit u){
+        return new MultiEffect(eff,
+        new Effect(lifeTime,200000f,e->{
+            e.rotation = u.rotation;
+            float
+                rotation = u.rotation - 90,
+                realRecoil = Mathf.pow(w.recoil, w.weapon.recoilPow) *  w.weapon.recoil,
+                weaponRotation  = rotation + (w.weapon.rotate ? w.rotation : w.weapon.baseRotation),
+                wx = u.x + Angles.trnsx(rotation, w.weapon.x, w.weapon.y)+ Angles.trnsx(weaponRotation, 0, -realRecoil),
+                wy = u.y + Angles.trnsy(rotation, w.weapon.x, w.weapon.y)+ Angles.trnsy(weaponRotation, 0, -realRecoil);
+                Draw.mixcol(color,color, e.fout());
+                Draw.alpha(e.fout());
+                Lines.stroke(1f);
+                Draw.rect(Core.atlas.find(w.weapon.name+"-white"),wx,wy,weaponRotation);
+        }));
+    };
 }

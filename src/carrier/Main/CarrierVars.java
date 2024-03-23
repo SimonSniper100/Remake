@@ -2,9 +2,7 @@ package carrier.Main;
 
 import arc.func.Cons;
 import arc.graphics.Color;
-import carrier.Main.Content.Type_and_Entity.Transformer.TransformEntity;
-import carrier.Main.Content.Type_and_Entity.Transformer.TransformFlying;
-import mindustry.gen.Unit;
+import arc.struct.Seq;
 import mindustry.type.Weapon;
 
 public class CarrierVars {
@@ -12,19 +10,6 @@ public class CarrierVars {
 		thurmixRedLight = Color.valueOf("#FFCED0"),
 		thurmixRedDark = thurmixRed.cpy().lerp(Color.black, 0.9f);
     public boolean isTransformType,isTransform;
-    public void TransformSystem(Unit u){
-        if(u instanceof TransformEntity s){
-            isTransformType = true;
-            isTransform = s.TransformNow;
-        }
-        else if(u instanceof TransformFlying f){
-            isTransformType = true;
-            isTransform = f.TransformNow;
-        }
-        else {
-            isTransformType = isTransform= false;
-        }
-    }
     public static Weapon copyMove(Weapon w,float x,float y){
         Weapon n = w.copy();
         n.x=x;
@@ -44,5 +29,28 @@ public class CarrierVars {
         n.y=y;
         mod.get(n);
         return n;
+    }
+    public static Seq<Weapon> FlipWeapon(Weapon weapon,float x,float y,boolean flipSpirte){
+        Seq<Weapon> flip = new Seq<>();
+        Weapon n = weapon.copy();
+        n.x = x;
+        n.y = y;
+        Weapon f = n.copy();
+        f.x *= -1;
+        f.flipSprite = flipSpirte;
+        flip.add(n,f);
+        return flip;
+    }
+    public static Seq<Weapon> WeaponChainAdd(Weapon weapon,Seq<Float> postions){
+        Seq<Weapon> chainAdd = new Seq<>();
+        for(int i = 0;i<(int)(postions.size/2);i++){
+            float x = postions.get(2*i),y = postions.get(2*i+1);
+            Weapon c = weapon.copy();
+            c.display = i==0;
+            c.x = x;
+            c.y = y;
+            chainAdd.addAll(c);
+        }
+        return chainAdd;
     }
 }
