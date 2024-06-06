@@ -1,22 +1,18 @@
 package carrier.Main.Content.Ability;
 
-import static carrier.Main.MathComplex.continues;
-
 import arc.Core;
-import arc.math.Mathf;
 import arc.scene.ui.layout.Table;
 import arc.util.Time;
-import carrier.Main.MathComplex;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformEntity;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformFlying;
+import carrier.Main.MathComplex;
 import mindustry.gen.Unit;
 import mindustry.type.UnitType;
 
 public class Skill implements Cloneable{
-    private float results,lstResults;
+    private float results;
     public float rotate,time;
-    private float[] p1= new float[256];
-    public String message="";
+    private final float[] p1= new float[256];
     public int SpawnCount=1;
     public boolean display;
     protected boolean start,end;
@@ -24,6 +20,9 @@ public class Skill implements Cloneable{
     public float data;
     public float shootFadeIn(float speed,Unit u,int index){
         return p1[index]=MathComplex.MoveStaightTowards(p1[index], u.isShooting ? 1:0, speed*Time.delta/60f);
+    }
+    public boolean displayed(){
+        return display;
     }
     public float shootFadeOut(float speed,Unit u,int index){
         return 1- shootFadeIn(speed, u,index);

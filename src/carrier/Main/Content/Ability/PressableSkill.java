@@ -69,4 +69,8 @@ public class PressableSkill extends Skill{
         }
         return f;
     }
+    @Override
+    public boolean displayed(){
+        return false;
+    }
 }
