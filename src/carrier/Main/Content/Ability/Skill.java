@@ -15,7 +15,7 @@ public class Skill implements Cloneable{
     private final float[] p1= new float[256];
     public int SpawnCount=1;
     public boolean display;
-    protected boolean start,end;
+    protected boolean start;
     public void displayBars(Unit unit, Table bars){}
     public float data;
     public float shootFadeIn(float speed,Unit u,int index){
