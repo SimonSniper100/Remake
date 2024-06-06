@@ -46,6 +46,9 @@ public class SucideAI extends MissileAI {
             if(v.len() >= unit.range()*0.9){
                 unit.moveAt(v.setLength(unit.speed()));
             }
+            else{
+                updateWeapons();
+            }
         }
     }
     @Override

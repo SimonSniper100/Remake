@@ -1,5 +1,7 @@
 package carrier.Main.Content.unit;
 
+import static mindustry.Vars.tilesize;
+
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Lines;
@@ -8,20 +10,24 @@ import arc.util.Tmp;
 import carrier.Main.Content.AI.NoneAI;
 import carrier.Main.Content.AI.SucideAI;
 import carrier.Main.Content.Type_and_Entity.Other.LaserUnitType;
+import carrier.Main.Content.Weapons.ConfigWeapons;
 import mindustry.content.StatusEffects;
 import mindustry.entities.Damage;
 import mindustry.entities.Effect;
 import mindustry.entities.bullet.ContinuousLaserBulletType;
+import mindustry.entities.bullet.ExplosionBulletType;
 import mindustry.entities.part.RegionPart;
 import mindustry.gen.Bullet;
 import mindustry.gen.Sounds;
+import mindustry.gen.TimedKillUnit;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.type.UnitType;
 import mindustry.type.Weapon;
+import mindustry.type.unit.MissileUnitType;
 
 public class LaserUnit {
-    public static UnitType LaserDrone;
+    public static UnitType LaserDrone,SentryOrb,LargeMissile;
     public static void loadDrone(){
         LaserDrone= new LaserUnitType("LaserDrone"){{
             health = 100f;
@@ -106,6 +112,36 @@ public class LaserUnit {
                 Draw.reset();
                 }};
             }});
+        }};
+        LargeMissile = new MissileUnitType("LargeMissile"){{
+            hidden = false;
+            health=2500;
+            speed =12f;
+            missileAccelTime = 1*60;
+            drag = 0.1f;
+            armor = 200;
+            constructor =() ->new TimedKillUnit(){
+                @Override
+                public boolean serialize(){
+                    return false;
+                }
+            };
+            trailScl = 3;
+            lifetime = 5*60f;
+            weapons.add(
+                new ConfigWeapons(){{
+                    mirror = false;
+                    reload = 1f;
+                    shootOnDeath = true;
+                    bullet = new ExplosionBulletType(250000,20*tilesize){
+                        {
+                            suppressionRange = 130;
+                            collides = true;
+                            collidesAir = collidesGround = true;
+                        }
+                    };
+                }}
+            );
         }};
     }
 }

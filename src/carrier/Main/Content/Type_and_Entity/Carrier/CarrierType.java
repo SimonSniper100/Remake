@@ -14,7 +14,7 @@ public class CarrierType extends TransformType{
     public float spawnX=0f,spawnY=0f;
     public CarrierType(String name) {
         super(name);
-        constructor=CarrierEntity::new;
+        constructor=()-> new CarrierEntity();
         omniMovement = false;
     }
     @CallSuper

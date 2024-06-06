@@ -3,15 +3,24 @@ package carrier.Main.Content.StatusMod;
 import mindustry.type.StatusEffect;
 
 public class StatusMod {
-    public static StatusEffect NakisakaBuff,DisbenzireBuff,DissesanaBuff,Special;
+    public static StatusEffect NakisakaBuff,DisbenzireBuff,DissesanaBuff,Special,USSMissouriBuff;
     // Unit Buff,Will Hidden
     public static void loadStatus(){
+        USSMissouriBuff = new StatusEffect("USSMissouriBuff"){{
+            show = false;
+            hideDetails = true;
+            speedMultiplier = 1.1f;
+            damageMultiplier = 2f;
+            healthMultiplier = 2f;
+            reloadMultiplier = 1.7f;
+            dragMultiplier = 0.4f;
+        }};
         NakisakaBuff = new StatusEffect("NakisakaBuff"){{
             show = false;
             hideDetails = true;
             speedMultiplier = 1.1f;
             damageMultiplier = 1.5f;
-            healthMultiplier = 3f;
+            healthMultiplier = 2f;
             reloadMultiplier = 1.3f;
             dragMultiplier = 0.4f;
         }};
@@ -36,7 +45,7 @@ public class StatusMod {
         Special = new StatusEffect("clear"){{
             show = false;
             hideDetails = true;
-            healthMultiplier = 3f;
+            healthMultiplier = 2.75f;
         }};
     }
 }

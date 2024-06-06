@@ -14,10 +14,11 @@ public class DownSideBar extends Element{
         Fill.quad(x, y, x, y+height, x+width, y, x+width, y+height*1.3f);
         Draw.color(Color.black.a(a));
         Fill.quad(x, y, x, y+height*0.8f, x+width, y, x+width, y+height);
-        resetAll();
         Draw.reset();
     }
-    public void resetAll(){
-        a = 1f;
+    @Override
+    public void act(float d){
+        super.act(d);
+        
     }
 }

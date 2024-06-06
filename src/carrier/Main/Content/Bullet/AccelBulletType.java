@@ -14,7 +14,9 @@ public class AccelBulletType extends DataBulletType{
 	public Interp accelInterp = Interp.linear;
 	
 	public void disableAccel(){
-		accelerateBegin = 10;
+		accelerateBegin = speed;
+		velocityBegin = speed;
+		velocityIncrease = 0;
 	}
 	
 	public AccelBulletType(){
@@ -48,16 +50,16 @@ public class AccelBulletType extends DataBulletType{
 		float cal = 0;
 		
 		FloatSeq speeds = new FloatSeq();
-		for(float i = 0; i <= 1; i += 0.05f){
-			float s = velocityBegin + accelInterp.apply(Mathf.curve(i, accelerateBegin, accelerateEnd)) * velocityIncrease;
+		for(float i = 0; i <= 1; i += 0.04f){
+			float s = velocityBegin + accelInterp.apply(Mathf.curve(i, accelerateBegin, accelerateEnd));
 			speeds.add(s);
-			if(computeRange)cal += s * lifetime * 0.05f;
+			if(computeRange)cal += s * lifetime * 0.04f;
 		}
 		speed = speeds.sum() / speeds.size;
 		
 		if(computeRange)cal += 1;
 		
-		return cal;
+		return rangeOverride >0 ? rangeOverride : cal;
 	}
 	
 	@Override	
@@ -70,4 +72,10 @@ public class AccelBulletType extends DataBulletType{
 		if(accelerateBegin < 1)b.vel.setLength((velocityBegin + accelInterp.apply(Mathf.curve(b.fin(), accelerateBegin, accelerateEnd)) * velocityIncrease) * (drag != 0 ? (1 * Mathf.pow(b.drag, b.fin() * b.lifetime() / 6)) : 1));
 		super.update(b);
 	}
+	public float calculateVelocity(float distances,float maxRange){
+        //Calulate Alpha first, they should be aim Corret
+        float a = Mathf.clamp(distances/maxRange);
+        float velocity = velocityBegin + accelInterp.apply(Mathf.curve(a, accelerateBegin, accelerateEnd))*velocityIncrease;
+        return velocity;
+    }
 }

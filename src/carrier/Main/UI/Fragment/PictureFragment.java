@@ -5,7 +5,6 @@ import arc.func.Floatp;
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.TextureAtlas.AtlasRegion;
-import arc.math.Mathf;
 import arc.scene.Group;
 import arc.scene.actions.Actions;
 import arc.scene.event.Touchable;
@@ -23,8 +22,8 @@ import mindustry.ui.fragments.LoadingFragment;
 
 public class PictureFragment extends LoadingFragment {
     public boolean mobile;
-    private Table table,t2,t3;
-    private TextButton button;
+    private Table table,tempTable,t2,t3;
+    private TextButton button ;
     private Bar bar;
     public AtlasRegion image;
     private Label nameLabel ;
@@ -41,38 +40,36 @@ public class PictureFragment extends LoadingFragment {
     @Override
     public void build(Group patens){
         patens.fill(t->{
+            t.clear();
             t.rect((x, y, w, h)->{
                 Draw.alpha(t.color.a);
                 Styles.black8.draw(0, 0, Core.graphics.getWidth(), Core.graphics.getHeight());
             });
-            if(image == null){
-                image = Core.atlas.find(!mobile ? img.random():img.random()+"-mobile");
-            }
             t.visible = false;
             t.touchable = Touchable.enabled;
-            t.image(image).align(Align.center).grow();
             t.fill(e->{
-                t2=e;
-                e.setZIndex(234);
+                e.clear();
+                e.setZIndex(150);
                 e.bottom();
-                e.add(new DownSideBar(){{a=d;}}).growX().height(180);
+                e.add(new DownSideBar()).growX().height(180);
+                e.toFront();
                 e.fill(s->{
+                    s.clear();
                     s.toFront();
-                    t3=s;
                     s.bottom().right().moveBy(-60,30);
                     nameLabel = s.add("@loading:"+progValue +"%").style(Styles.techLabel).visible(true).get();
                     text("@loading:"+progValue +"%");
                     bar = s.add(new Bar()).visible(false).get();
                     button = s.button("@cancel", ()->{}).get();
                     s.row();
-                    s=t3;
+                    t3=s;
                 });
-                e=t2;
+                t2=e;
             });
             table = t;
+            tempTable = table;
         });
     }
-    
     public void text(String text){
         nameLabel.setText(text);
         CharSequence realText = nameLabel.getText();
@@ -98,26 +95,27 @@ public class PictureFragment extends LoadingFragment {
     @Override
     public void show(){
         show("@loading");
+
     }
     @Override
     public void hide(){
-        image = Core.atlas.find(!mobile ? img.random(): img.random()+"mobile");
         d = Actions.fadeOut(1f).getAlpha();
-        table.touchable =t3.touchable =t2.touchable = Touchable.disabled;
+        table.touchable=tempTable.touchable=t3.touchable =t2.touchable = Touchable.disabled;
         table.clearActions();
         table.toFront();
-        table.actions(Actions.fadeOut(1f), Actions.visible(false));
+        table.actions(Actions.fadeOut(1), Actions.visible(false));
+        tempTable.clearActions();
+        tempTable.actions(Actions.fadeOut(1), Actions.visible(false));
         t2.clearActions();
         t2.toFront();
-        t2.actions(Actions.fadeOut(1f), Actions.visible(false));
+        t2.actions(Actions.fadeOut(1), Actions.visible(false));
         t3.clearActions();
         t3.toFront();
-        t3.actions(Actions.fadeOut(1f), Actions.visible(false));
+        t3.actions(Actions.fadeOut(1), Actions.visible(false));
     }
     @Override
     public void show(String text){
         button.visible = false;
-        image = Core.atlas.find(!mobile ? img.random(): img.random()+"mobile");
         nameLabel.setColor(Color.white);
         bar.visible = false;
         table.clearActions();
@@ -127,7 +125,13 @@ public class PictureFragment extends LoadingFragment {
         table.visible = true;
         table.color.a = 1f;
         table.toFront();
-
+        
+        tempTable.clear();
+        tempTable = table;
+        tempTable.setZIndex(100);
+        image = Core.atlas.find(!mobile ? img.random():img.random()+"-mobile");
+        tempTable.image(image).align(Align.center).grow();
+        
         t2.clearActions();
         t2.touchable = Touchable.enabled;
         text(text);
@@ -135,7 +139,7 @@ public class PictureFragment extends LoadingFragment {
         t2.visible = true;
         t2.color.a = 1f;
         t2.toFront();
-
+        
         t3.clearActions();
         t3.touchable = Touchable.enabled;
         text(text);
@@ -144,6 +148,7 @@ public class PictureFragment extends LoadingFragment {
         t3.color.a = 1f;
         t3.toFront();
     }
+
     @Override
     public void toFront(){
         table.toFront();

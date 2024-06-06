@@ -1,7 +1,9 @@
 package carrier.Main.Content.Block;
 
 import carrier.Main.MathComplex;
+import carrier.Main.Content.Bullet.AccelBulletType;
 import carrier.Main.Content.Bullet.CriticalBulletType;
+import carrier.Main.Content.Bullet.Shoot.ShootBarrelsContinous;
 import carrier.Main.Content.Effect.NDEffect;
 import carrier.Main.Content.Item.ModItem;
 import carrier.Main.Content.Part.PartBow;
@@ -22,6 +24,9 @@ import mindustry.world.blocks.defense.turrets.ItemTurret;
 import mindustry.world.draw.DrawMulti;
 import mindustry.world.draw.DrawTurret;
 import mindustry.world.meta.BuildVisibility;
+
+import static carrier.Main.MathComplex.SignDirection;
+import static mindustry.Vars.tilesize;
 import static mindustry.type.ItemStack.with;
 
 import arc.Core;
@@ -29,18 +34,108 @@ import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Fill;
 import arc.graphics.g2d.Lines;
+import arc.math.Interp;
 import arc.math.Mathf;
 public class ModBlock {
     public static float AH;
-    public static Block LargeQuatanzationWall,DestroyerCrossbow;
+    public static Block LargeQuatanzationWall,DestroyerCrossbow,Despot;
     public static Effect ef = new Effect(30f,1f,e->{
         Lines.stroke(0.1f,Items.surgeAlloy.color);
         Fill.circle(e.x,e.y,e.fout()*5);
     });
     public static void LoadFactory(){}
     public static void loadTurret(){
+        Despot = new ItemTurret("Despot"){{
+            drawer = new DrawMulti(new DrawTurret(){{
+                float moveAllX=4;
+                for(int i:new int[]{0,1,2,3}){
+                    parts.addAll(new RegionPart("-Spine"){{
+                        progress = PartProgress.warmup;
+                        turretShading =true;
+                        mirror =true;
+                        moveX =moveAllX;
+                        moveRot = 5;
+                        y=-3;
+                        moveY= -3;
+                        rotation=-90;
+                        moveRot = 30*i;
+                        layerOffset = 0.001f;
+                    }});
+                }
+                parts.add(new RegionPart("-mid"){{
+                    layerOffset = 0.001f;
+                }});
+                for(int i:Mathf.signs){
+                    parts.addAll(
+                    new RegionPart("-blade-"+SignDirection(i)){{
+                        moveX =moveAllX*i;
+                        mirror = false;
+                        progress = PartProgress.warmup;
+                        layerOffset = 0.002f;
+                    }},
+                    new RegionPart("-back-"+SignDirection(i)){{
+                        moveX =moveAllX*i;
+                        mirror = false;
+                        progress = PartProgress.warmup;
+                        layerOffset = 0.002f;
+                    }},
+                    new RegionPart("-front-"+SignDirection(i)){{
+                        moveX =moveAllX*i;
+                        mirror = false;
+                        progress = PartProgress.warmup;
+                        layerOffset = 0.002f;
+                    }}
+                );
+                }
+                
+            }});
+            size = 8;
+            health = 32000;
+            armor = 128;
+            range = 100f*tilesize;
+            ammoPerShot = 4;
+            reload = 60*10f;
+            maxAmmo = ammoPerShot*20;
+            consPower = consumePower(4000/60f);
+            unitSort = (u,x,y)->{return u.speed();};
+            recoil = 1;
+            buildCostMultiplier = 2f;
+            shootWarmupSpeed = 0.07f;
+            minWarmup = 0.95f;
+            coolant = consumeCoolant(2f);
+            coolantMultiplier = 3f;
+            shoot = new ShootBarrelsContinous(){{
+                barrels = new float[]{-12,0,0,12,0,0};
+                shots = 12;
+                shotDelay = 5;
+                BulletPerShot = 2;
+            }};
+            requirements(Category.turret, with(ModItem.QuatanzationCrystal,1000,Items.silicon,1000));
+            ammo(ModItem.Diamond,new AccelBulletType(){{
+                damage = 2500;
+                accelInterp =Interp.exp10Out;
+                accelerateBegin = 0.01f;
+                accelerateEnd=0.99f;
+                velocityBegin = 5;
+                velocityIncrease = 6;
+                lifetime = 1*60f;
+                width = 22f;
+                height = 60f;
+                trailLength = 15;
+                splashDamage = damage/5f;
+                splashDamageRadius = damage/(10f*8f);
+                lightning = 4;
+                lightningCone = 360;
+                lightningLength = 4;
+                lightningDamage = damage/5f;
+                lightningColor = trailColor = Color.valueOf("b8e0f4");
+                trailWidth = width/5f;
+                
+            }});
+            
+        }};
         DestroyerCrossbow= new ItemTurret("baseCrossbow"){{
-            health = 12800;
+            health = 22800;
             armor = 34;
             description = "A Strong Sniper Crossbow, You Can Use Between 2 Ammo, One For Fast Reload Low Damage, One For Low Reload But Massive Damage";
             size = 8;
@@ -133,7 +228,6 @@ public class ModBlock {
                     trailEffect=Fx.fire;
                     lifetime=2f*20f;
                     shootSound=Sounds.shootBig;
-                    
                     splashDamage=damage*10f;
                     splashDamageRadius=70f;
                     splashDamageRadiusCrit=30;
@@ -175,7 +269,7 @@ public class ModBlock {
                 Items.thorium,12,
                 Items.plastanium,10,
                 Items.metaglass,10
-                ));
+            ));
         }};
     }
 }

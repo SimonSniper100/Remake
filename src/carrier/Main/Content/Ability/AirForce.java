@@ -7,6 +7,7 @@ import arc.graphics.g2d.Lines;
 import arc.math.Angles;
 import arc.math.Interp;
 import carrier.Main.Content.AI.AirForceAI;
+import carrier.Main.Content.Type_and_Entity.Supporter.SupporterEntity;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformEntity;
 import mindustry.entities.Effect;
 import mindustry.gen.Unit;
@@ -60,6 +61,9 @@ public class AirForce extends Skill{
                             ai.x=x;
                             ai.y=y;
                         }
+                        if(airforce instanceof SupporterEntity sup){
+                            sup.ser = false;
+                        }
                     }
                 }
                 else if(!t.TransformNow){
@@ -79,9 +83,6 @@ public class AirForce extends Skill{
                 }
             }
         }
-    }
-    public boolean isRip(Unit u){
-        return u==null||u.dead()||!u.isValid()||u.isNull();
     }
     @Override
     public void draw(Unit u){

@@ -1,20 +1,23 @@
 package carrier.Main.Content.AI;
 
 import arc.math.Angles;
+import arc.math.Interp;
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.util.Nullable;
 import arc.util.Tmp;
+import carrier.Main.Content.Type_and_Entity.Part.PartType;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformEntity;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformFlying;
 import mindustry.entities.units.AIController;
 import mindustry.gen.Unit;
 
 public class PartUnitAI extends AIController {
-    
+    public float[] startArgument={};
     public boolean transformType,isTransform;
     public Unit Transformer;
-    public float x,y;
+    public float x,y,moveX,moveY,bodyRotation,progress,rotProg,rotationOffset;
+    public Interp InterpRotation = Interp.linear,InterpMoveX= Interp.linear,InterpMoveY= Interp.linear;
     public boolean lossen;
     private float px,py;
     public PartUnitAI(){
@@ -46,26 +49,32 @@ public class PartUnitAI extends AIController {
                 transformType = false;
                 isTransform = false;
             }
-            if(transformType&&isTransform){
+            if((transformType&&isTransform)||Transformer.type instanceof PartType){
                 if(Transformer.isLocal()){
                     for(var mount: unit.mounts){
                         mount.aimX = Transformer.aimX;
                         mount.aimY = Transformer.aimY;
                         mount.shoot = Transformer.isShooting;
                     }
+                    unit.aimX = Transformer.aimX;
+                    unit.aimY = Transformer.aimY;
                 }
                 else{
                     updateWeapons();
                 }
-                unit.rotation = Transformer.rotation;
+                float rp = InterpRotation.apply(rotProg);
+                float xp = InterpMoveX.apply(progress);
+                float yp = InterpMoveY.apply(progress);
+                unit.rotation = Transformer.rotation+rotationOffset+rp*bodyRotation;
                 unit.speedMultiplier = Transformer.speedMultiplier;
                 unit.reloadMultiplier = Transformer.reloadMultiplier;
                 unit.damageMultiplier = Transformer.damageMultiplier;
                 unit.healthMultiplier = Transformer.healthMultiplier;
                 unit.dragMultiplier = Transformer.dragMultiplier;
-                px = Transformer.x+ Angles.trnsx(Transformer.rotation, y,x);
-                py = Transformer.y+ Angles.trnsy(Transformer.rotation, y,x);
-                if(lossen && !IsTeleport(unit,px,py, Transformer.hitSize*(float)Math.sqrt(Transformer.speedMultiplier/(unit.type.accel+unit.type.drag))))moveTo(px,py, 2,10,false,null,true);
+                px = Transformer.x+ Angles.trnsx(Transformer.rotation, y+xp*moveY,x+yp*moveX);
+                py = Transformer.y+ Angles.trnsy(Transformer.rotation, y+xp*moveY,x+yp*moveX);
+                unit.isShooting = Transformer.isShooting;
+                if(lossen && !IsTeleport(unit,px,py, Transformer.hitSize*(float)Math.sqrt(Transformer.speedMultiplier/(unit.type.accel+unit.type.drag))))moveTo(px,py, 2,10,false,null,false);
                 else unit.set(px,py);
             }
             else{

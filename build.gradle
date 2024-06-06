@@ -34,7 +34,7 @@ allprojects{
 dependencies{
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
-
+    implementation 'org.apache.commons:commons-math3:3.6.1'
     annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
 }
 

@@ -9,17 +9,13 @@ public class LaserUnitType extends UnitType {
         constructor = LaserEntity::new;
         hittable=createScorch=createWreck=targetable=useUnitCap=outlines=drawCell=drawMinimap=omniMovement=false;
         killable =flying =true;
+        engineSize=0;
         engines.clear();
     }
     public class LaserEntity extends UnitEntity {
         @Override
         public void wobble(){
             
-        }
-        @Override
-        public void update(){
-            super.update();
-            elevation(0.4f);
         }
     }
 }

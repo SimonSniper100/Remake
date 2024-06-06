@@ -3,6 +3,7 @@ package carrier.Main.Content.Type_and_Entity.Drone;
 import arc.Core;
 import arc.graphics.g2d.Draw;
 import arc.math.Mathf;
+import arc.math.geom.Rect;
 import arc.util.Time;
 import arc.util.io.Reads;
 import arc.util.io.Writes;
@@ -36,7 +37,6 @@ public class DroneEntity extends UnitEntity implements CarrierClass{
             speedMultiplier(1);
             healthMultiplier(1);
         }
-        
     }
     @Override
     public void draw(){
@@ -46,6 +46,12 @@ public class DroneEntity extends UnitEntity implements CarrierClass{
         else {
             super.draw();
         }
+    }
+    
+    @Override
+    public void hitbox(Rect r){
+        if(!invis)super.hitbox(r);
+        else r.setCentered(x, y,0);
     }
     public boolean TakingDamage(Unit unit){
         currentHealth = deltaHealthPerSecond;

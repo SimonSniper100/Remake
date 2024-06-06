@@ -78,7 +78,7 @@ public class SupporterUnit {
 
                  Drawf.light(e.x, e.y, 60f * e.fout(), Color.white, 0.5f);
                 });
-                CritEffect= new MultiEffect(NDEffect.BlackHole(Color.white,2, 80, 45,60f,7f),
+                CritEffect= new MultiEffect(NDEffect.BlackHoleData(Color.white,2, 80, 45,60f,7f),
                 new Effect(80,e->{
                     Draw.color(Color.white.cpy().a(0.66f*e.fout()));
                     NDEffect.drawShockWave(e.x, e.y, 75f, 0f, -e.rotation - 90f, 120*e.fin(Interp.pow2Out)+1, 15f*e.fin(Interp.pow2Out)+1, 36,0.02f);

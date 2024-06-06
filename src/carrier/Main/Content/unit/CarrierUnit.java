@@ -1,12 +1,15 @@
 package carrier.Main.Content.unit;
 
 import carrier.Main.Content.Ability.AirForce;
+import carrier.Main.Content.Ability.CrossHairSkill;
 import carrier.Main.Content.Ability.DrawPartOnly;
-import carrier.Main.Content.Ability.OrbritWeapon;
+import carrier.Main.Content.Ability.LaserObritalWeapon;
 import carrier.Main.Content.Ability.PartSpawn;
+import carrier.Main.Content.Ability.PressableSkill;
 import carrier.Main.Content.Ability.RadarDestruction;
 import carrier.Main.Content.Bullet.TrailFadeBulletType;
 import carrier.Main.Content.Bullet.Shoot.ShootBarrelsContinous;
+import carrier.Main.Content.Effect.NDDraw;
 import carrier.Main.Content.Effect.NDEffect;
 import carrier.Main.Content.Item.ModItem;
 import carrier.Main.Content.Part.HaloParts;
@@ -15,12 +18,20 @@ import carrier.Main.Content.StatusMod.StatusMod;
 import carrier.Main.Content.Type_and_Entity.Carrier.CarrierEntity;
 import carrier.Main.Content.Type_and_Entity.Carrier.CarrierType;
 import carrier.Main.Content.Type_and_Entity.Part.PartType;
+import carrier.Main.Content.Weapons.ConfigWeapons;
+import carrier.Main.SomeThing.ModKeyBinds;
+
+import static carrier.Main.MathComplex.*;
+import static mindustry.Vars.tilesize;
+
 import arc.func.Cons;
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.Fill;
 import arc.graphics.g2d.Lines;
 import arc.math.Interp;
 import arc.math.Mathf;
+import arc.math.geom.Vec2;
 import arc.struct.Seq;
 import arc.util.Tmp;
 import mindustry.Vars;
@@ -29,18 +40,18 @@ import mindustry.content.Items;
 import mindustry.content.StatusEffects;
 import mindustry.entities.Damage;
 import mindustry.entities.Effect;
-import mindustry.entities.abilities.RepairFieldAbility;
+import mindustry.entities.UnitSorts;
 import mindustry.entities.bullet.BasicBulletType;
 import mindustry.entities.bullet.BulletType;
 import mindustry.entities.bullet.ContinuousLaserBulletType;
 import mindustry.entities.bullet.LaserBulletType;
 import mindustry.entities.effect.MultiEffect;
-import mindustry.entities.part.DrawPart.PartProgress;
 import mindustry.entities.part.RegionPart;
 import mindustry.entities.pattern.ShootBarrel;
 import mindustry.gen.Bullet;
 import mindustry.gen.EntityMapping;
 import mindustry.gen.Sounds;
+import mindustry.gen.Unit;
 import mindustry.graphics.Drawf ;
 import mindustry.graphics.Layer;
 import mindustry.type.ItemStack;
@@ -50,7 +61,7 @@ import mindustry.type.Weapon;
 import mindustry.type.ammo.ItemAmmoType;
 import mindustry.type.ammo.PowerAmmoType;
 
-public class CarrierUnit {
+public final class CarrierUnit {
     public static Weapon MainTurret,TransformGun,RailBeam,LargeTurret;
     public static UnitType Disbenzire,Dissesana;
     public static UnitType PartDisbenzire;
@@ -59,7 +70,7 @@ public class CarrierUnit {
     }
     private static void loadWeapon(){
         ModSound.loadSounds();
-        RailBeam = new Weapon("carrier-mod-dis-Railgun-Turret"){{
+        RailBeam = new ConfigWeapons("carrier-mod-dis-Railgun-Turret"){{
             reload = 38*60;
             shake = 4;
             rotate = true;
@@ -71,7 +82,7 @@ public class CarrierUnit {
             targetInterval = 1f;
             targetSwitchInterval =2f;
             baseRotation = 180;
-            
+            sortf = UnitSorts.strongest;
             mirror = false;
             shootWarmupSpeed = 0.2f;
             shoot.shotDelay = 10f;
@@ -113,7 +124,7 @@ public class CarrierUnit {
                 }));
             }};
         }};
-        TransformGun = new Weapon("carrier-mod-d-beam-gun"){{
+        TransformGun = new ConfigWeapons("carrier-mod-d-beam-gun"){{
             continuous = true;
             reload = 5*60f;
             shake = 2f;
@@ -138,7 +149,7 @@ public class CarrierUnit {
                 hitEffect = Fx.hitMeltdown;
             }};
         }};
-        MainTurret = new Weapon("carrier-mod-d-railgun"){{
+        MainTurret = new ConfigWeapons("carrier-mod-d-railgun"){{
             shoot.shotDelay = 1.5f*60;
             shoot = new ShootBarrel(){{
                 barrels = new float[]{5.02f,20,0,-5.02f,20,0}; 
@@ -222,7 +233,7 @@ public class CarrierUnit {
                 Draw.reset();
             }};
         }};
-        LargeTurret = new Weapon("carrier-mod-dis-Large-Turret"){{
+        LargeTurret = new ConfigWeapons("carrier-mod-dis-Large-Turret"){{
             shoot = new ShootBarrelsContinous(){{
                 barrels = new float[]{6,9,0,-6,9,0};
                 shots = 8;
@@ -244,7 +255,8 @@ public class CarrierUnit {
             recoil = 2f;
             bullet = new TrailFadeBulletType(){{
                 speed = 10;
-                damage = 4250;
+                damage = Factorial(7);
+                readDataUnit = readDataBlock = false;
                 accelerateBegin = 0.1f;
 			    accelerateEnd = 0.99f;
                 velocityBegin = 20f;
@@ -317,7 +329,6 @@ public class CarrierUnit {
         Disbenzire = new CarrierType("Disbenzire"){{
             BuffStatus = StatusMod.DisbenzireBuff;
             ImmuneAll=true;
-            description = "A strong Tier 6 Half carrier unit.Has ability to control the airfighter:Surenza";
             health = 67500f;
             drag = 0.01f;
             accel = 0.01f;
@@ -339,12 +350,37 @@ public class CarrierUnit {
                 new ItemStack(Items.plastanium,1400),
                 new ItemStack(Items.titanium,1200),
                 new ItemStack(Items.phaseFabric,500)
-            };            
-            constructor = ()-> new CarrierEntity(){{
+            };
+            skills.add(new CrossHairSkill(){
+                @Override
+                public void drawWeaponCrosshair(Unit u){
+                super.drawWeaponCrosshair(u);
+                Draw.reset();
+                Draw.color(Color.white);
+                Draw.z(Layer.effect);
+                float rot = CrossHairRotation(u);
+                final Vec2 v = new Vec2(),v2 = new Vec2(),v3=new Vec2();
+                v2.trns(rot, Mathf.clamp(rngFin())*u.range());
+                for(int i : Mathf.signs){
+                    v.trns(rot+90*i, 11*tilesize);
+                    v3.trns(rot+90*i, 12*tilesize);
+                    NDDraw.DrawSquareBracketsKeyShape(new float[]{
+                        u.x+v2.x+v.x,u.y+v2.y+v.y,
+                        rot-90*i,0,4*shootFadeIn(0.4f,u,0),12,15,0});
+                    Lines.line(u.x+v2.x+v.x,u.y+v2.y+v.y,u.x+v2.x+v3.x,u.y+v2.y+v3.y);
+                }
+                Fill.circle(u.x+v2.x,u.y+v2.y,4*shootFadeIn(0.1f,u,0));
+                }
+            });            
+            constructor = ()-> new CarrierEntity(){
+                {
                 nameSprite = "Disbenzire";
                 TimeTransform = 120*60;
                 CountDownTime = 60*60;
                 healSpeedWhenInCarrier = 2f;
+                ReturnX = -14.5f;
+                ReturnY = -80f;
+                invFrameSecond=0;
                 postion.addAll(
                     -14.5f,-60f,0f,
                     -14.5f,-40f,0f,
@@ -355,6 +391,7 @@ public class CarrierUnit {
                     -14.5f,60f, 0f,
                     -14.5f,80f, 0f
                     );
+                invFrameSecond =0;
                 droneType = DroneUnit.Surenza;
                 spawnX =-14.5f;
                 spawnY = 80f;
@@ -362,12 +399,12 @@ public class CarrierUnit {
                 buildSpeedIfTransform = 4f;
             }}; 
             outlineColor = Color.valueOf("3c3d42");
-            abilities.addAll(new RepairFieldAbility(100f, 4*60, 8*10),new RadarDestruction(){{
+            skills.addAll(new RadarDestruction(){{
                 radarRadius =8*50f;
                 radarRadiusDamage = 4000;
                 skillCooldown = 6*60;
                 BlastEffect =new MultiEffect(
-                    NDEffect.BlackHole(Color.white,2f,60,45,140f,7),
+                    NDEffect.BlackHoleData(Color.white,2f,60,45,140f,7),
                     NDEffect.FragmentExplode(1.2f*60,Color.white,80,5,4,34)
                 );
             }},
@@ -433,15 +470,18 @@ public class CarrierUnit {
                                 spawnUnit = LaserUnit.LaserDrone;
                             }};
                         }},
-                        new Weapon(){{
+                        new ConfigWeapons(){
+                            
+                            {
                             display = mirror = false;
                             range  = 1f;
                             reload = 1000000f;
                             x=0f;
                             y=0f;
+                            rotate = true;
                             bullet = new BulletType(){{
                                 speed =100000f;
-                                rangeOverride = 150*8f;
+                                rangeOverride = 151*8f;
                                 shootSound = Sounds.none;
                                 shootEffect=Fx.none;
                                 smokeEffect = Fx.none;
@@ -455,14 +495,15 @@ public class CarrierUnit {
             alwaysCreateOutline = true;
             ImmuneAll = true;
             health = 800000;
+            constantEffect.add(StatusMod.Special);
             armor = 300;
-            description  = "??????? <Not Found> ??????? \n Press N to Transform";
             hitSize = Disbenzire.hitSize * 1.5f;
             outlineColor = Color.valueOf("3c3d42");
             rotateSpeed = 0.2f;
             speed = Disbenzire.speed*0.8f;
             accel = 0.008f;
             drag = 0.005f;
+            ImmuneSuction = true;
             useEngineElevation = false;
             lowAltitude = true;
             aimDst =0;
@@ -474,9 +515,12 @@ public class CarrierUnit {
                 spawnY =-115f;
                 SpawnTime = 12*60f;
                 TimeTransform = 300*60;
+                invFrameSecond =0f;
                 CountDownTime = 90*60;
                 healSpeedWhenInCarrier = 3f;
                 buildSpeedIfTransform = 4f;
+                ReturnX = -23f;
+                ReturnY = -115f;
                 postion.addAll(
                     -23f,125f,0f,
                     -23f,95f,0f,
@@ -490,7 +534,7 @@ public class CarrierUnit {
                 );
             }};
             for(int i : Mathf.signs){
-                abilities.addAll(
+                skills.addAll(
                     new PartSpawn(PartDisbenzire, 75*i, -70,true),
                     new PartSpawn(PartDisbenzire, 105*i, -90,true),
                     new DrawPartOnly("-Disbenzire-wings"+(i == 1 ?1:2)){{
@@ -572,22 +616,20 @@ public class CarrierUnit {
                     hitEffect = Fx.hitLaser;
                 }};
             }));
-            abilities.addAll(new OrbritWeapon(){{
-                color = Color.white;
-                skillCooldown = 30*60;
-                firstDamage = 2000000;
-                shockWaveIncrease = 30*8;
-                beamRadius = 14*8f;
-                duration = 15*60;
-                damage = 300000;
-                timeDelay = 2*60f;
-                Velocity = 3f;
-                shake = 10;
-                damageInterval = 5;
-                BoomEffect = new MultiEffect(
-                    NDEffect.ShockWave(7*60f,Color.white,beamRadius+shockWaveIncrease,4,17,6)
-                );
-            }});
+            skills.addAll(
+                new PressableSkill(){{
+                    setCooldownTimer(15*60f);
+                    SkillPlace(ModKeyBinds.Skill1,new LaserObritalWeapon(){{
+                        WeaponBrustTimer = 10;
+                        color = Color.white;
+                        WeaponsDeployDelay =2;
+                        LaserDamage = 60000;
+                        LaserMoveSpeed = 4f;
+                        LaserRadius = 70;
+                        Height = 150;   
+                    }});
+                }}
+            );
         }};
     }
     public static Weapon copyMove(Weapon weapon, float x, float y,boolean mirror,float OffSet,boolean display){

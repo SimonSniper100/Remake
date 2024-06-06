@@ -17,9 +17,9 @@ import mindustry.gen.Sounds;
 import mindustry.type.UnitType;
 import mindustry.type.Weapon;
 
-public class DroneUnit {
+public final class DroneUnit {
     public static UnitType Surenza,Nemesis;
-    public  static Weapon Rocket,ManchineLaser;
+    public static Weapon Rocket,ManchineLaser;
     public static void loadWeapons(){
         ManchineLaser = new Weapon("carrier-mod-N-SmallTurret"){{
             parts.add(new RegionPart("-barrel"){{
@@ -99,6 +99,7 @@ public class DroneUnit {
             autoFindTarget =true;
             alwaysCreateOutline = true;
             shadowElevation = 0.02f;
+            hitSize = UnitTypes.horizon.hitSize*1.1f;;
             useUnitCap = false;
             constructor = ()-> new DroneEntity(){{
                 ImmuneChance = 92f;
@@ -106,7 +107,6 @@ public class DroneUnit {
                 speedMultiplierWhenImmune = 2f;
             }};
             controller = u -> new DockController();
-            hitSize = UnitTypes.horizon.hitSize*1.1f;
             weapons.addAll(Rocket);
         }};
         Nemesis = new DroneType("Nemesis"){{

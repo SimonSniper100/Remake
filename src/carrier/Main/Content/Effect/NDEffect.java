@@ -1,6 +1,7 @@
 package carrier.Main.Content.Effect;
 
 import arc.Core;
+import arc.func.Floatc2;
 import arc.graphics.Color;
 import arc.graphics.Texture;
 import arc.graphics.g2d.Batch;
@@ -29,17 +30,18 @@ import mindustry.entities.Effect;
 import mindustry.entities.effect.MultiEffect;
 import mindustry.entities.effect.ParticleEffect;
 import mindustry.entities.units.WeaponMount;
+import mindustry.gen.Building;
 import mindustry.gen.Bullet;
 import mindustry.gen.Unit;
 import mindustry.graphics.*;
-import mindustry.type.Weapon;
-
 import java.util.Arrays;
+
 public class NDEffect {
     public static final float WIDTH = 2.5f;
     public static float trueHitChance = 1;
     public static final float RANGE_RAND = 5f;
     public static final float ROT_DST = Vars.tilesize * 0.6f;
+    private static final FloatSeq floatSeq = new FloatSeq();
     static Vec3 v = new Vec3();
     static Vec2 v1 = new Vec2();
     static Vec2 v2 = new Vec2();
@@ -47,6 +49,11 @@ public class NDEffect {
     public static Rand r = new Rand(),rand= new Rand();
     static boolean drawing3D = false;
     static Batch last;
+    private static final Vec2
+        tmp1 = new Vec2(),
+        tmp2 = new Vec2(),
+        tmp3 = new Vec2(),
+        vec21 = new Vec2();
     static Mat3D mat3 = new Mat3D();
     public static float[] verts = new float[4 * 6];
     static CacheBatch3D batch3D = new CacheBatch3D();
@@ -61,6 +68,59 @@ public class NDEffect {
     public static void draw3DEnd(float x, float y, float rx, float ry, float rz, Runnable pre){
         draw3DEnd(x, y, rx, ry, rz, -0.1f, 0.1f, pre);
     }
+    public static Effect chainLightningFade = new Effect(220f, 500f, e -> {
+        if(!(e.data instanceof Position)) return;
+        Position p = e.data();
+        final float lightningAlign = 0.5f;
+        float tx = p.getX(), ty = p.getY(), dst = Mathf.dst(e.x, e.y, tx, ty);
+        Tmp.v1.set(p).sub(e.x, e.y).nor();
+        
+        e.lifetime = dst * 0.3f;
+        float normx = Tmp.v1.x, normy = Tmp.v1.y;
+        float range = e.rotation;
+        int links = Mathf.ceil(dst / range);
+        float spacing = dst / links;
+        
+        Lines.stroke(2.5f * Mathf.curve(e.fout(), 0, 0.7f));
+        Draw.color(e.color ,Color.white, e.fout() * 0.6f);
+        
+        Lines.beginLine();
+    
+        Fill.circle(e.x, e.y, Lines.getStroke() / 2);
+        Lines.linePoint(e.x, e.y);
+        
+        rand.setSeed(e.id);
+    
+        float fin = Mathf.curve(e.fin(), 0, lightningAlign);
+        int i;
+        float nx = e.x, ny = e.y;
+        for(i = 0; i < (int)(links * fin); i++){
+            if(i == links - 1){
+                nx = tx;
+                ny = ty;
+            }else{
+                float len = (i + 1) * spacing;
+                Tmp.v1.setToRandomDirection(rand).scl(range/2f);
+                nx = e.x + normx * len + Tmp.v1.x;
+                ny = e.y + normy * len + Tmp.v1.y;
+            }
+            
+            Lines.linePoint(nx, ny);
+        }
+
+        if(i < links){
+            float f = Mathf.clamp(fin * links % 1);
+            float len = (i + 1) * spacing;
+            Tmp.v1.setToRandomDirection(rand).scl(range/2f);
+            Tmp.v2.set(nx, ny);
+            if(i == links - 1)Tmp.v2.lerp(tx, ty, f);
+            else Tmp.v2.lerp(e.x + (normx * len + Tmp.v1.x), e.y + (normy * len + Tmp.v1.y), f);
+            
+            Lines.linePoint(Tmp.v2.x, Tmp.v2.y);
+            Fill.circle(Tmp.v2.x, Tmp.v2.y, Lines.getStroke() / 2);
+        }
+        Lines.endLine();
+    }).followParent(false);
     public static void draw3DEnd(float x, float y, float rx, float ry, float rz, float zRangeMin, float zRangeMax, Runnable pre){
         if(!drawing3D) return;
         drawing3D = false;
@@ -161,60 +221,37 @@ public class NDEffect {
             }
         });
     }
-    public static Effect BlackHole(Color color,float BlackHoleSize,float lifeTime,float rotate,float height,float width){
-        return new Effect(lifeTime,200000,e->{
-            float size = 0;
-            if(e.data != null && e.data instanceof Unit u){
-                size = u.hitSize/10;
-            }
-            float limit = 2*(Math.min(e.fslope(), 0.5f));
-            float p = limit >= 1f?Mathf.sin(2*Mathf.PI*e.fin()*10f*(lifeTime/60)):0;
-            for(int i =0;i<2;i++){
-                Draw.color(color);
-                Draw.z(105);
-                Drawf.tri(e.x, e.y,(BlackHoleSize+size)*(width*limit+p*0.6f),(height*limit+p*0.6f)*(BlackHoleSize+size), 180*i+rotate);
-                Draw.reset();
-                Draw.color(Color.black);
-                Draw.z(110);
-                Drawf.tri(e.x, e.y, (BlackHoleSize+size)*(width*limit*6f/7f+p*0.6f),(height*limit*6f/7f+p*0.6f)*(BlackHoleSize+size), 180*i+rotate);
-                Draw.color(Color.black);
-                Draw.z(98);
-                Drawf.tri(e.x, e.y, (BlackHoleSize+size)*(width*limit*6f/7f+p*0.6f),(height*limit*6f/7f+p*0.6f)*(BlackHoleSize+size), 180*i+rotate);
-            }
-        });
-    }
     public static Effect BlackHoleData(Color color,float BlackHoleSize,float lifeTime,float rotate,float height,float width){
+        return BlackHoleData(color,BlackHoleSize,lifeTime,rotate,height,width,false);
+    }
+    //Wait For It
+    public static Effect BlackHoleData(Color color,float BlackHoleSize,float lifeTime,float rotate,float height,float width,boolean EffectSpawnWhenHit){
         return new Effect(lifeTime,200000,e->{
             float size = 0;
+            Rand r2 = new Rand(e.id);
             if(e.data != null && e.data instanceof Unit u){
-                size = u.hitSize/10;
+                size = Mathf.sqrt(u.type.hitSize*r2.random(0.7f, 1f)*BlackHoleSize*1.3f)/6f;
             }
-            else return;
-            float limit = 2*(Math.min(e.fslope(), 0.5f));
-            float p = limit >= 1f?Mathf.sin(2*Mathf.PI*e.fin()*10f*(lifeTime/60)):0;
+            else if(e.data instanceof Building b){
+                size = Mathf.sqrt(b.block.size*r2.random(0.7f, 1f));
+            }
+            else if(EffectSpawnWhenHit)return;
+            float xr = r2.random(-20f*size,20f*size),yr = r2.random(-20f*size,20f*size);
+            float limit = 2*(Math.min(Interp.pow2Out.apply(e.fslope()), 0.5f));
+            float p = limit >= 1f?Mathf.sin(2*Mathf.PI*e.fin()*8f*(lifeTime/60)):0;
             for(int i =0;i<2;i++){
-                Draw.color(color);
-                Draw.z(105);
-                Drawf.tri(e.x, e.y,(BlackHoleSize+size)*(width*limit+p*0.6f),(height*limit+p*0.6f)*(BlackHoleSize+size), 180*i+rotate);
-                Draw.reset();
+                Draw.color(color,Color.white,e.fout()*0.3f);
+                Draw.z(Layer.effect);
+                tri(e.x+xr, e.y+yr,(BlackHoleSize+size)*(width*limit+p*0.7f),(height*limit+p*0.7f)*(BlackHoleSize+size), 180*i+rotate);
                 Draw.color(Color.black);
-                Draw.z(110);
-                Drawf.tri(e.x, e.y, (BlackHoleSize+size)*(width*limit*6f/7f+p*0.6f),(height*limit*6f/7f+p*0.6f)*(BlackHoleSize+size), 180*i+rotate);
-                Draw.color(Color.black);
-                Draw.z(98);
-                Drawf.tri(e.x, e.y, (BlackHoleSize+size)*(width*limit*6f/7f+p*0.6f),(height*limit*6f/7f+p*0.6f)*(BlackHoleSize+size), 180*i+rotate);
+                Draw.z(Layer.effect+0.0001f);
+                tri(e.x+xr, e.y+yr, (BlackHoleSize+size)*(width*limit*0.66f+p*0.7f),(height*limit*0.66f+p*0.7f)*(BlackHoleSize+size), 180*i+rotate);
+                Draw.z(Layer.bullet-0.11f);
+                tri(e.x+xr, e.y+yr, (BlackHoleSize+size)*(width*limit*0.66f+p*0.7f),(height*limit*0.66f+p*0.7f)*(BlackHoleSize+size), 180*i+rotate);
             }
-        });
+        }).layer(Layer.effect - 1f);
     }
-    public static Effect TransformEffect(Color color,float lifeTime,Unit u,float x ,float y,float rotate,String name){
-        return new Effect(lifeTime,200000,e->{
-            Draw.color(color);
-            Draw.alpha(e.foutpowdown());
-            Lines.stroke(3);
-            Draw.rect(Core.atlas.find(name), u.x+Angles.trnsx(u.rotation,y,x),u.y+Angles.trnsy(u.rotation,y,x),rotate-90f);
-
-        });
-    }
+    //Idk use this for
     public static Effect ParticleEffectHit(Color color,float size,float life){
         return new ParticleEffect(){{
             lifetime = life;
@@ -287,13 +324,39 @@ public class NDEffect {
             followParent(true).rotWithParent(true);
         }};
     }
-    public static void DrawProgressCircle(float z,float radius,float thick,float progress,Position source,Color color){
-        Draw.z(z);
+    public static void DrawProgressCircle(float z,float rad,float thick,float progress,Position source,Color color,float angle){
         Draw.color(color);
+        float p = Mathf.clamp(progress),x=source.getX(),y= source.getY();
         Lines.stroke(thick);
-        for(float i = 0;i<360*progress;i+=0.01f){
-            Lines.line(MathComplex.dx(source.getX(),radius,i),MathComplex.dy(source.getX(),radius,i),MathComplex.dx(source.getX(),radius,i+0.01f),MathComplex.dy(source.getX(),radius,i+0.01f));
+        Draw.z(z);
+        
+        int sides = Lines.circleVertices(rad);
+        
+        float space = 360.0F / (float)sides;
+        float len = 2 * rad * Mathf.sinDeg(space / 2);
+        float hstep = Lines.getStroke() / 2.0F / Mathf.cosDeg(space / 2.0F);
+        float r1 = rad - hstep;
+        float r2 = rad + hstep;
+        
+        int i;
+        
+        for(i = 0; i < sides * p - 1; ++i){
+            float a = space * (float)i + angle;
+            float cos = Mathf.cosDeg(a);
+            float sin = Mathf.sinDeg(a);
+            float cos2 = Mathf.cosDeg(a + space);
+            float sin2 = Mathf.sinDeg(a + space);
+            Fill.quad(x + r1 * cos, y + r1 * sin, x + r1 * cos2, y + r1 * sin2, x + r2 * cos2, y + r2 * sin2, x + r2 * cos, y + r2 * sin);
         }
+    
+        float a = space * i + angle;
+        float cos = Mathf.cosDeg(a);
+        float sin = Mathf.sinDeg(a);
+        float cos2 = Mathf.cosDeg(a + space);
+        float sin2 = Mathf.sinDeg(a + space);
+        float f = sides * p - i;
+        vec21.trns(a, 0, len * (f - 1));
+        Fill.quad(x + r1 * cos, y + r1 * sin, x + r1 * cos2 + vec21.x, y + r1 * sin2 + vec21.y, x + r2 * cos2 + vec21.x, y + r2 * sin2 + vec21.y, x + r2 * cos, y + r2 * sin);
     }
     public static int hash(String m, Color c){
 		return Arrays.hashCode(new int[]{m.hashCode(), c.hashCode()});
@@ -326,13 +389,12 @@ public class NDEffect {
         }).layer(Layer.effect - 0.001f);
     }
     public static void createBoltEffect(Color color, float width, Vec2Seq vets,float lifeTime) {
-		if(true){
-			vets.each(((x, y) -> {
-				if(Mathf.chance(0.0855))lightningSpark().at(x, y, rand2.random(2f + width, 4f + width), color);
-			}));
-		}
+	    vets.each(((x, y) -> {
+			if(Mathf.chance(0.0855))lightningSpark().at(x, y, rand2.random(2f + width, 4f + width), color);
+		}));
 		posLightning(lifeTime).at((vets.firstTmp().x + vets.peekTmp().x) / 2f, (vets.firstTmp().y + vets.peekTmp().y) / 2f, width, color, vets);
 	}
+    
     public static Effect lightningFade(float lifetime){
          return new Effect(posLightning(lifetime).lifetime, 1200.0f, e -> {
             if(!(e.data instanceof Vec2Seq)) return;
@@ -419,9 +481,9 @@ public class NDEffect {
         return new Effect(lifeTime,200000,e->{
             Draw.color(color.cpy().a(e.foutpow()));
             Drawf.light(e.x, e.y, radius*e.finpow(),color.cpy(),e.fout(Interp.pow3Out)*4f);
-            Lines.stroke(Math.abs(strokeFrom*e.foutpow() + strokeTo));
+            Lines.stroke(Mathf.lerp(strokeFrom, strokeTo, e.finpow()));
             Lines.circleVertices(0.01f);
-            Lines.circle(e.x, e.y, radius*e.fin(Interp.pow3Out) + Offset);
+            Lines.circle(e.x, e.y, Mathf.lerp(Offset,radius,e.fin(Interp.pow2Out)));
         });
     }
     public static Effect Absorbed(float lifeTime,Color color,float radius,float Offset,float strokeFrom,float strokeTo){
@@ -434,19 +496,24 @@ public class NDEffect {
     }
     public static Effect FragmentExplode(float lifeTime,Color color,float radius,float lenght,float stroke,int fragment){
         return new Effect(lifeTime,200000,e->{
+            float add = 0;
+            if(e.data instanceof Unit u){
+                add = u.type.hitSize/8;
+            }
             Rand rand = new Rand(e.id);
             Draw.color(color);
-            Lines.stroke(e.fout()*stroke);
+            Lines.stroke(e.fout()*stroke*1.1f);
             
             for(int i=0;i< fragment;i++){
                 float s = rand.random(0.1f,1f);
                 float rot = 360f*rand.random(0f, 1f);
-                Tmp.v2.trns(rot, e.fin()*(radius+e.fout()*lenght)*s);
-                Tmp.v3.trns(rot, e.fin()*(radius-e.fout()*lenght)*s);
+                Tmp.v2.trns(rot, e.fin()*(radius+add+e.fout()*lenght)*s*1.1f);
+                Tmp.v3.trns(rot, e.fin()*(radius+add-e.fout()*lenght)*s*1.1f);
                 Lines.line(e.x+Tmp.v2.x,e.y+Tmp.v2.y,e.x+Tmp.v3.x,e.y+Tmp.v3.y);
             }
         });
     }
+    //Lol lazy create some name
     public static Effect FragmentVaccum(float lifeTime,Color color,float radius,float lenght,float stroke,int fragment){
         return new Effect(lifeTime,200000,e->{
             Rand rand = new Rand(e.id);
@@ -466,7 +533,7 @@ public class NDEffect {
             float p = FadeIn ? e.fin():e.fout();
             Draw.color(color);
             for(int i =0;i<4;i++){
-                Drawf.tri(e.x, e.y, width*e.fout(Interp.pow2Out), height*p, i*90+angleOffSet);
+                Drawf.tri(e.x, e.y, width*e.fout(Interp.pow2Out), height*p, e.rotation + i*90+angleOffSet);
             } 
         });
     }
@@ -538,16 +605,17 @@ public class NDEffect {
     public static Effect BlackHoleCollapse(float lifeTime,Color color,float BlackHoleRadius,boolean fin){
         return new Effect(lifeTime,200000f,b->{
             Draw.z(Layer.effect);
-            Draw.color(color.cpy().a(fin ?b.fout(Interp.pow2Out):1));
-            Fill.circle(b.x,b.y,BlackHoleRadius*(fin ? b.fin(Interp.pow2Out):b.fout(Interp.pow2Out)));
+            Draw.color(color.cpy().a(fin ?b.fout(Interp.pow3Out):1));
+            Fill.circle(b.x,b.y,BlackHoleRadius*(fin ? b.fin(Interp.pow3Out):b.fout(Interp.pow3Out)));
             Draw.reset();
-            Draw.z(Layer.effect+1f);
-            Draw.color(Color.black.cpy().a(fin ?1:b.fout()));
-            Fill.circle(b.x,b.y,(BlackHoleRadius*(fin ? b.fin(Interp.pow2Out):b.fout(Interp.pow2Out)))*0.8f);
+            Draw.z(Layer.effect+0.0001f);
+            Draw.color(Color.black.cpy().a(1));
+            Fill.circle(b.x,b.y,(BlackHoleRadius*(fin ? b.fin(Interp.pow3Out):b.fout(Interp.pow3Out)))*0.8f);
             Draw.reset();
-            Draw.z(Layer.effect+1f);
-            Draw.color(Color.black.cpy().a(fin ?1:b.fout()));
-            Fill.circle(b.x,b.y,(BlackHoleRadius*(fin ? b.fin(Interp.pow2Out):b.fout(Interp.pow2Out)))*0.8f);
+            Draw.z(Layer.bullet - 0.11f);
+            Draw.color(Color.black.cpy().a(1));
+            Fill.circle(b.x,b.y,(BlackHoleRadius*(fin ? b.fin(Interp.pow3Out):b.fout(Interp.pow3Out)))*0.8f);
+            Drawf.light(b.x,b.y,BlackHoleRadius*(fin ? b.fin(Interp.pow3Out):b.fout(Interp.pow3Out))*1.1f,Color.white,4);
         });
     }
     public static Effect SpikeCircle2(float lifeTime,Color color,float radius,int SpikeCreate,float randLenght,float width){
@@ -567,12 +635,12 @@ public class NDEffect {
             }
         });
     }
-    public static Effect TransformAppear(Color color, @Nullable Effect eff, float lifeTime, String spriteName,@Nullable Unit un){
+    public static Effect TransformAppear(Color color, @Nullable Effect eff, float lifeTime, String spriteName,@Nullable Unit un,float offsetRotation){
         return new MultiEffect(eff,
             new Effect(lifeTime,200000f,e->{
                 if(un != null)e.data = un;
                 if(e.data instanceof Unit u){
-                    e.rotation = u.rotation;
+                    e.rotation = u.rotation+offsetRotation;
                     Draw.mixcol(color,color, e.fout());
                     Draw.alpha(e.fout());
                     Lines.stroke(1f);
@@ -596,4 +664,86 @@ public class NDEffect {
                 Draw.rect(Core.atlas.find(w.weapon.name+"-white"),wx,wy,weaponRotation);
         }));
     };
+    public static Effect shootLine(float size, float angleRange){
+		int num = Mathf.clamp((int)size / 6, 6, 20);
+		float thick = Mathf.clamp(0.75f, 2f, size / 22f);
+		
+		return new Effect(37f, e -> {
+            if(e.data instanceof Bullet b)e.rotation = b.rotation();
+            else if (e.data instanceof WeaponMount m)e.rotation = m.rotation;
+			Draw.color(e.color, Color.white.cpy(), e.fout() * 0.7f);
+			rand.setSeed(e.id);
+			randLenVectors(e.id, num, 4 + (size * 1.2f) * e.fin(), size * 0.15f * e.fin(), e.rotation, angleRange, (x, y) -> {
+				Lines.stroke(thick * e.fout(0.32f));
+				Lines.lineAngle(e.x + x, e.y + y, Mathf.angle(x, y), (e.fslope() + e.fin()) * 0.5f * (size * rand.random(0.15f, 0.5f) + rand.random(2f)) + rand.random(2f));
+				Drawf.light(e.x + x, e.y + y, e.fslope() * (size * 0.5f + 14f) + 3, e.color, 0.7f);
+			});
+		});
+	}
+    public static void randLenVectors(long seed, int amount, float length, float minLength, float angle, float range, Floatc2 cons){
+        rand.setSeed(seed);
+        for(int i = 0; i < amount; i++){
+            vec21.trns(angle + rand.range(range), minLength  + rand.random(length));
+            cons.get(vec21.x, vec21.y);
+        }
+    }
+    public static void randLenVectors(long seed, float fin, int amount, float minLength, float length, Angles.ParticleConsumer cons){
+        rand.setSeed(seed);
+        for(int i = 0; i < amount; i++){
+            float l = rand.nextFloat();
+            vec21.trns(rand.random(360f), length * l * fin + minLength);
+            cons.accept(vec21.x, vec21.y, fin * l, (1f - fin) * l);
+        }
+    }
+    public static void tri(float x, float y, float width, float length, float angle){
+        float wx = Angles.trnsx(angle + 90, width), wy = Angles.trnsy(angle + 90, width);
+        Fill.tri(x + wx, y + wy, x - wx, y - wy, Angles.trnsx(angle, length) + x, Angles.trnsy(angle, length) + y);
+    }
+    public static void createEffect(Position from, Position to, Color color, int lightningNum, float width,float lifeTime){
+		if(Vars.headless)return;
+		
+		if(lightningNum < 1){
+			Fx.chainLightning.at(from.getX(), from.getY(), 0, color, new Vec2().set(to));
+		}else{
+			float dst = from.dst(to);
+			
+			for(int i = 0; i < lightningNum; i++){
+				float len = Mathf.random(1f, 7f);
+				float randRange = len * RANGE_RAND;
+				
+				floatSeq.clear();
+				FloatSeq randomArray = floatSeq;
+				for(int num = 0; num < dst / (ROT_DST * len) + 1; num++){
+					randomArray.add(Mathf.range(randRange) / (num * 0.025f + 1));
+				}
+				createBoltEffect(color, width, computeVectors(randomArray, from, to),lifeTime);
+			}
+		}
+	}
+    private static Vec2Seq computeVectors(FloatSeq randomVec, Position from, Position to){
+		int param = randomVec.size;
+		float angle = from.angleTo(to);
+		
+		Vec2Seq lines = new Vec2Seq(param);
+		tmp1.trns(angle, from.dst(to) / (param - 1));
+		
+		lines.add(from);
+		for (int i = 1; i < param - 2; i ++)lines.add(tmp3.trns(angle - 90, randomVec.get(i)).add(tmp1, i).add(from.getX(), from.getY()));
+		lines.add(to);
+		
+		return lines;
+	}
+    public static void createEffect(Position from, float length, float angle, Color color, int lightningNum, float width,float lifeTime){
+		if(Vars.headless)return;
+		createEffect(from, tmp2.trns(angle, length).add(from), color, lightningNum, width,lifeTime);
+	}
+    public static Effect ChargeEffectStar4Wing(float lifeTime,Color color,boolean FadeIn,float width,float height,float angleOffSet,float angleForm,float angleTo,float startDelay){
+        return new Effect(lifeTime,200000,e->{
+            float pcut = MathComplex.ProgressFadeOutDelay(e.fslope(),0.3f);
+            Draw.color(color);
+            for(int i =0;i<4;i++){
+                Drawf.tri(e.x, e.y, width*pcut, height, e.rotation + i*90+angleOffSet+Mathf.lerp(angleForm,angleTo,e.fin(Interp.pow3Out)));
+            } 
+        }).startDelay(startDelay);
+    }
 }

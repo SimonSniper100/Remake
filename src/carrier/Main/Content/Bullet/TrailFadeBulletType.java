@@ -30,7 +30,7 @@ public class TrailFadeBulletType extends AccelBulletType{
 	public Color color;
 	/** Whether add the spawn point of the bullet to the trail seq.*/
 	public boolean addBeginPoint = false;
-	public boolean hitBlinkTrail = true;
+	public boolean hitBlinkTrail = false;
 	public boolean despawnBlinkTrail = false;
 	
 	public TrailFadeBulletType(){
@@ -108,7 +108,7 @@ public class TrailFadeBulletType extends AccelBulletType{
 	@Override
 	public void init(Bullet b){
 		super.init(b);
-		if(Vars.headless || trailLength > 0)return;
+		if(Vars.headless)return;
 		Vec2Seq[] points = new Vec2Seq[tracers];
 		for(int i = 0; i < tracers; i++){
 			Vec2Seq p = new Vec2Seq();

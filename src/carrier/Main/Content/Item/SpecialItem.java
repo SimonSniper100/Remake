@@ -17,7 +17,7 @@ public class SpecialItem extends Item {
     @Override
     public void setStats(){
         super.setStats();
-        if(armorScalingPoint >0)stats.addPercent(ModStat.armorBonus, armorScalingPoint);
+        if(armorScalingPoint >0)stats.add(ModStat.armorBonus, armorScalingPoint);
         if(damageBouns>0){
             stats.add(ModStat.DamageBonusForUnit, damageBounsForUnit);
             stats.add(ModStat.DamageBonusForBlock, damageBounsForBlock);

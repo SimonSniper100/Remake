@@ -8,7 +8,8 @@ public class ModSound {
         ArpShoot=new Sound(),
         hugeBlasts = new Sound(),
         synchro = new Sound(),
-        blaster = new Sound();
+        blaster = new Sound(),
+        SecondarySound = new Sound();
     public static Sound LoadSound(String name){
         return Vars.tree.loadSound(name);
     }
@@ -17,5 +18,6 @@ public class ModSound {
         blaster = LoadSound("Blaster");
         hugeBlasts = LoadSound("HugeBlasts");
         synchro = LoadSound("synchro");
+        SecondarySound = LoadSound("SecondarySound");
     } 
 }

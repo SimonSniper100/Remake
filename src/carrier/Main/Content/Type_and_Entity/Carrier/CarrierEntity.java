@@ -30,6 +30,7 @@ public class CarrierEntity extends TransformEntity{
     public float buildSpeedIfTransform,healSpeedWhenInCarrier;
     public float spawnX=0f,spawnY=0f;
     public float timer=0f,sx,sy,tx,ty,timer2=0f;
+    public float ReturnX,ReturnY;
     public int unitsSpawned;
     public Seq<Float> postion = new Seq<>(unitsSpawned*3);
         public Seq<Unit> drone = new Seq<>(unitsSpawned);
@@ -118,6 +119,8 @@ public class CarrierEntity extends TransformEntity{
                         hangar.x = postion.get(3*k);
                         hangar.y = postion.get(3*k+1);
                         hangar.rotate = postion.get(3*k+2);
+                        hangar.rx = ReturnX;
+                        hangar.ry = ReturnY;
                         if(hangar.InCarrier){
                             if(unit.healthf()<1){
                                 unit.health+=Time.delta*healSpeedWhenInCarrier;
