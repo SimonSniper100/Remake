@@ -14,13 +14,13 @@ import static carrier.Main.MathComplex.MoveStaightTowards;
 import static carrier.Main.MathComplex.continues;
 
 public class CrossHairSkill extends Skill{
-    private int maxSize = 10;
+    private final int maxSize = 12;
     private float SclRange;
     protected Teamc target;
     boolean r = false;
     boolean[] rIndex = new boolean[maxSize];
-    private float prog[]=new float[maxSize],ProgIndex[]=new float[maxSize],timeDelaySecondIndex[] = new float[maxSize];
-    int t[]=new int[maxSize];
+    private final float[] prog=new float[maxSize],ProgIndex=new float[maxSize],timeDelaySecondIndex = new float[maxSize];
+    int[] t=new int[maxSize];
     public float sclRange(Unit u){
         return SclRange = Mathf.clamp(Mathf.dst(u.x,u.y,u.aimX,u.aimY)/ Math.abs(u.range()));
     }

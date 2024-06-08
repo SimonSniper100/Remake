@@ -2,6 +2,7 @@ package carrier.Main.Content.Ability;
 
 import arc.Core;
 import arc.scene.ui.layout.Table;
+import arc.util.Log;
 import arc.util.Time;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformEntity;
 import carrier.Main.Content.Type_and_Entity.Transformer.TransformFlying;
@@ -28,13 +29,7 @@ public class Skill implements Cloneable{
         return 1- shootFadeIn(speed, u,index);
     }
     //TODO need check delta function
-    public float Diffenals(float after){
-        lstResults = results;
-        results = after;
-        return (after-lstResults)/Time.delta;
-    }
-    public void update(Unit u){
-        time+= Time.delta;
+    public void update(Unit u){time+= Time.delta;
     }
 
     public void addStats(Table t){
@@ -84,7 +79,7 @@ public class Skill implements Cloneable{
             return(Skill)clone();
         }
         catch(CloneNotSupportedException err){
-            err.printStackTrace();
+            Log.err(err);
             throw new RuntimeException("Something Wrong"+err);
         }
     }

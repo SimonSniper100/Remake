@@ -60,7 +60,7 @@ public class DrawEletricLines {
         }
     }
     public boolean timer(int index, float time) {
-        return Float.isInfinite(time) ? false : timec.get(index, time);
+        return !Float.isInfinite(time) && timec.get(index, time);
     }
     public boolean isRip(Unit u){
         return u==null||u.dead()||!u.isValid()||u.isNull();

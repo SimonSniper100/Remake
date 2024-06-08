@@ -18,7 +18,7 @@ public class AirForce extends Skill{
     public Color color;
     public Effect airforceEffect,spawnEffect;
     public UnitType type;
-    public float x,y,roadLenght = 10000f;
+    public float x,y,r,roadLenght = 10000f;
     public boolean run=false,oneTime = true;
     public String name;
 
@@ -32,18 +32,18 @@ public class AirForce extends Skill{
     @Override
     public void update(Unit u){
         setupEffect(u);
-        float r = u.rotation-Diffenals(u.rotation);
+        r = Angles.moveToward(r,u.rotation,5);
         if(isRip(airforce)){
             if(u instanceof TransformEntity t){
                 if(t.TransformNow && oneTime){
                     airforce = type.create(u.team);
                     float sx = u.x + Angles.trnsx(r, y,x),
                         sy = u.y + Angles.trnsy(r, y, x);
-                    airforceEffect.at(u,r-Diffenals(r));
+                    airforceEffect.at(u,r);
                     airforce.rotation = r;
                     airforce.set(sx,sy);
                     if(run){
-                        Effect.shake(6,1*60,sx,sy);
+                        Effect.shake(6, 60,sx,sy);
                         airforce.add();
                         spawnEffect = new Effect(2*120,e->{
                             Draw.color(color);
@@ -84,10 +84,7 @@ public class AirForce extends Skill{
             }
         }
     }
-    @Override
-    public void draw(Unit u){
-        
-    }
+
     @Override
     public void death(Unit u){
         if(!isRip(airforce)){
@@ -95,7 +92,6 @@ public class AirForce extends Skill{
         }
     }
     public void setupEffect(Unit u){
-        float r = u.rotation-Diffenals(u.rotation);
         airforceEffect= new Effect(120,e->{
             for(int i = 0;i<(int)roadLenght/1000;i++){
                 Draw.color(color);

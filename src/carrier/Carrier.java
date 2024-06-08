@@ -22,6 +22,7 @@ import mindustry.game.EventType.ClientLoadEvent;
 import mindustry.mod.Mod;
 
 public class Carrier extends Mod{
+    boolean pictureApply = false;
     public static String name(String add){
         return "carrier-mod" + "-" + add;
     }
@@ -38,8 +39,11 @@ public class Carrier extends Mod{
     }
     @Override
     public void init(){
-        pf.build(Core.scene.root);
-        Vars.ui.loadfrag=pf;
+        // Use For Debug
+        if(pictureApply){
+            pf.build(Core.scene.root);
+            Vars.ui.loadfrag = pf;
+        }
     }
     @Override
     public void loadContent(){

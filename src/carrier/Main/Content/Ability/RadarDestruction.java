@@ -98,7 +98,7 @@ public class RadarDestruction extends PassiveSkill {
             Lines.circle(e.x, e.y, radarRadius*finCut);
             Lines.line(e.x,e.y,MathComplex.dx(e.x,radarRadius*finCut+1,b),MathComplex.dy(e.y,radarRadius*finCut+1.001f,b));
             life = e.fin();
-            float diff=Diffenals(b)*1.5f;
+            float diff=MathComplex.DeltaVaule(b)*1.5f;
             for(int i =0;i<3;i++){
                 Draw.color(color);
                 Draw.z(Layer.bullet-1f);

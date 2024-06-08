@@ -1,6 +1,8 @@
 
 package carrier.Main;
 
+import org.apache.commons.math3.stat.StatUtils;
+
 import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.math.geom.Vec3;
@@ -11,8 +13,9 @@ import arc.util.Time;
  */
 public class MathComplex {
     public static final int[] SignZero = {-1,0,1};
-    private static float lstResult=0;
-    public static final float Factorial(float x){
+    private static transient float lstResult=0;
+
+    public static float Factorial(float x){
         long j=1;
         if(x<0)return Float.NaN;
         else if(x==0)return 1;
@@ -21,7 +24,7 @@ public class MathComplex {
         }
         return Math.round(j);
     }
-    public static final double Factorial(double x){
+    public static double Factorial(double x){
         long j=1;
         if(x<0)return Double.NaN;
         else if(x==0)return 1;
@@ -30,8 +33,8 @@ public class MathComplex {
         }
         return Math.round(j);
     }
-    public static final double SubFactorial(int n){
-        float z = 0;
+    public static double SubFactorial(int n){
+        double z = 0;
         if(n<0)return Double.NaN;
         else if (n == 0 || n == 2) return 1; 
         else if (n == 1) return 0; 
@@ -40,12 +43,12 @@ public class MathComplex {
         }
         return Math.round(Factorial(n)*z);
     }
-    public static final double BinomialCoefficients(int n,int k){
+    public static double BinomialCoefficients(int n, int k){
         if(k==0||k==n)return 1;
         else if(InRange(k, 0, n))return Math.round(Factorial(n)/(Factorial(k)*Factorial(n-k)));
         else return 0;
     }
-    public static final float[] QuaraticFomula(float a,float b,float c){
+    public static float[] QuaraticFomula(float a, float b, float c){
         float delta = b*b-4*a*c;
         if(delta >0){
             return new float[]{(-b-(float)Math.sqrt(delta))/(2*a),(-b+(float)Math.sqrt(delta))/(2*a)};
@@ -55,33 +58,29 @@ public class MathComplex {
         }
         else return new float[]{Float.NaN,Float.NaN};
     }
-    public static final float LogBaseAwithB(float a,float b){
+    public static float LogBaseAwithB(float a, float b){
         if(a==1||a<0||b<0)return Float.NaN;
         else return (float)(Math.log(b)/Math.log(a));
     }
-    public static final float InverseLogBaseAtoB(int a,int b){  
+    public static float InverseLogBaseAtoB(float a, float b){
         return 1/LogBaseAwithB(a,b);
     }
-    public static final double Tetration(float b,int exponent){
-        if (exponent == 1)return b;
-        else return Math.round(Math.pow(b,Tetration(b, exponent - 1)));
-    }
-    public static final double SecDeg(double degree){
+    public static double SecDeg(double degree){
         return 1/Math.cos(degree*(Math.PI/180));
     }
-    public static final double CscDeg(double degree){
+    public static double CscDeg(double degree){
         return 1/Math.sin(degree*(Math.PI/180));
     }
-    public static final double Sec(double radian){
+    public static double Sec(double radian){
         return 1/Math.cos(radian);
     }
-    public static final double Csc(double radian){
+    public static double Csc(double radian){
         return 1/Math.sin(radian);
     }
-    public static final double Cot(double radian){
+    public static double Cot(double radian){
         return 1/Math.tan(radian);
     }
-    public static final double CotDeg(double degree){
+    public static double CotDeg(double degree){
         return 1/Math.tan(degree *(Math.PI / 180));
     }
     public static float dx(float px, float r, float angle){
@@ -93,8 +92,8 @@ public class MathComplex {
     public static float posx(float x, float length, float angle){
         return x + length * (float)Math.cos((Math.PI * angle)/180);
     }
-    public static float posy(float y, float length, float angle){
-        return y + length *(float)Math.sin((Math.PI * angle)/180);
+    public static float posy(float y, float length, float angle) {
+        return y + length * (float) Math.sin((Math.PI * angle) / 180);
     }
     public static float DeltaVaule(float after){
         if(Time.delta == 0) return 0;
@@ -126,7 +125,7 @@ public class MathComplex {
         return chainPos(x,y,r.add(radius),ang.add(angle));
     }
     public static float PolygoneAngle(int i,int Max){
-        return i*360/Max;
+        return (float) (i * 360) /Max;
     }
     public static float dotProduct(Vec2 v1,Vec2 v2){
         return v1.x*v2.x+v1.y*v2.y;
@@ -266,10 +265,10 @@ public class MathComplex {
         return con ? 1:0;
     }
     public static float NonNegative(float num){
-        return num<0 ? 0:num;
+        return Math.max(num, 0);
     }
     public static int NonNegative(int num){
-        return num<0 ? 0:num;
+        return Math.max(num, 0);
     }
     public static String SignDirection(int i){
         return i==-1 ? "Left":"Right";

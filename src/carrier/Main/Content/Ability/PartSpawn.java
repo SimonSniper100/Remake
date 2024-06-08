@@ -22,7 +22,7 @@ import mindustry.type.UnitType;
 import mindustry.world.meta.StatValues;
 
 public class PartSpawn extends PassiveSkill{
-    private boolean runEffect,transformType,isTransform,isPartEntity;
+    private boolean runEffect;
     private float prog=0;
     public boolean DrawEletricLine= false;
     public Unit unitpart;
@@ -61,7 +61,9 @@ public class PartSpawn extends PassiveSkill{
     @Override
     public void update(Unit u){
         //Kiểm tra có phải là unit có thể biến đổi và nó là 1 phần part ?
-        isPartEntity = u instanceof PartEntity;
+        boolean isPartEntity = u instanceof PartEntity;
+        boolean transformType;
+        boolean isTransform;
         if(u instanceof TransformEntity t && ut instanceof PartType){
             transformType = true;
             isTransform = t.TransformNow;
@@ -74,7 +76,7 @@ public class PartSpawn extends PassiveSkill{
             transformType = false;
             isTransform = false;
         }
-        if((transformType && isTransform)||isPartEntity){
+        if((transformType && isTransform)|| isPartEntity){
             float 
             xp=u.x + Angles.trnsx(u.rotation,y,x),
             yp=u.y + Angles.trnsy(u.rotation,y,x);
